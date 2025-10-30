@@ -66,7 +66,7 @@ func installCore(opts *config) {
 		progressBar.AddSize(8)
 	} else if PM == "apt" {
 		progressBar.AddSize(3)
-		if PM == "apt" {
+		if !hasNalaPM {
 			progressBar.AddSize(1)
 		}
 	}
@@ -166,8 +166,8 @@ func installCore(opts *config) {
 		core.progressBar.Step()
 	}
 
-	//todo: may install nala for apt
-	if PM == "apt" {
+	//* install nala
+	if PM == "apt" && !hasNalaPM {
 		core.progressBar.Msg("Installing Nala")
 		installPKG("nala")
 		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
