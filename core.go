@@ -182,13 +182,21 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Installing Security Tools")
 
 	//* install fail2ban
+	core.progressBar.Msg("Installing Fail2Ban")
 	installPKG(`fail2ban`)
 	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil)
 	core.progressBar.Step()
 
+	//todo: fix apt dnf-automatic not found
+
 	//* install clamav
-	installPKG(`clamav`, `clamd`, `clamav-update`, `cronie`)
+	core.progressBar.Msg("Installing Clamav")
+	if PM == "dnf" {
+		installPKG(`clamav`, `clamd`, `clamav-update`, `cronie`)
+	} else if PM == "apt" {
+		installPKG(`clamav`, `clamav-daemon`, `clamav-update`, `cronie`)
+	}
 	bash.Run([]string{`systemctl`, `stop`, `clamav-freshclam`}, "", nil)
 	bash.Run([]string{`freshclam`}, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `--now`, `clamav-freshclam`}, "", nil)
@@ -207,13 +215,22 @@ func installCore(opts *config) {
 	core.progressBar.Step()
 
 	//* install other security tools
-	installPKG(`rkhunter`, `bleachbit`, `dnf-automatic`, `pwgen`)
-	bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
+	core.progressBar.Msg("Installing Security Tools")
+	if PM == "dnf" {
+		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `dnf-automatic`, `selinux-policy-devel`)
+		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
+	} else if PM == "apt" {
+		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+
+		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
+		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
+	}
 	core.progressBar.Step()
 
-	bash.Run([]string{`rkhunter`, `--update`, `-q`}, "", nil)
-	bash.Run([]string{`rkhunter`, `--propupd`, `-q`}, "", nil)
+	core.progressBar.Msg("Initializing RKhunter")
+	bash.Run([]string{`rkhunter`, `--update`}, "", nil, true)
+	bash.Run([]string{`rkhunter`, `--propupd`}, "", nil, true)
 
 	//* schedule scans
 	bash.RunRaw(`if ! [[ $(crontab -l) == *"# clamav-scan"* ]] ; then crontab -l | { cat; echo '0 2 * * * nice -n 15 clamscan && clamscan -r --bell --move="/VirusScan/quarantine" --exclude-dir="/VirusScan/quarantine" --exclude-dir="/home/$USER/.clamtk/viruses" --exclude-dir="smb4k" --exclude-dir="/run/user/$USER/gvfs" --exclude-dir="/home/$USER/.gvfs" --exclude-dir=".thunderbird" --exclude-dir=".mozilla-thunderbird" --exclude-dir=".evolution" --exclude-dir="Mail" --exclude-dir="kmail" --exclude-dir="^/sys" / # clamav-scan'; } | crontab -; fi`, "", nil)
@@ -315,7 +332,8 @@ func installCore(opts *config) {
 	/* if PM == "apt" {
 		//* install ubuntu extras
 		core.progressBar.Msg("Installing Ubuntu Extras")
-		installPKG(`ubuntu-restricted-extras`)
+		// installPKG(`ubuntu-restricted-extras`)
+		bash.RunRaw(`DEBIAN_FRONTEND=noninteractive apt install -y ubuntu-restricted-extras`, "", nil)
 		core.progressBar.Step()
 	} */
 
@@ -348,7 +366,7 @@ func installCore(opts *config) {
 		installPKG(`git`, `nodejs`)
 		if hasNalaPM {
 			bash.Run([]string{`nala`, `install`, `-y`, `--no-install-recommends`, `npm`}, "", nil)
-		}else{
+		} else {
 			bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil)
 		}
 	}
@@ -390,7 +408,7 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Installing Common Packages")
 
 	if PM == "dnf" {
-		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`, `selinux-policy-devel`)
+		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
 		bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil)
 	} else if PM == "apt" {
 		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfs-3g`, `exfatprogs`, `udftools`, `p7zip`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
