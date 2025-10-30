@@ -188,8 +188,6 @@ func installCore(opts *config) {
 	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil)
 	core.progressBar.Step()
 
-	//todo: fix apt dnf-automatic not found
-
 	//* install clamav
 	core.progressBar.Msg("Installing Clamav")
 	if PM == "dnf" {
