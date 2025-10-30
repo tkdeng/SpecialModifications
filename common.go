@@ -7,7 +7,7 @@ type config struct {
 }
 
 func newConfig() *config {
-	return &config{}
+	return &config{values: map[string]string{}}
 }
 
 func (c *config) addBool(key string, msg string, def bool) bool {
