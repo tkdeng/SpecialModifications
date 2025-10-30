@@ -102,9 +102,9 @@ func installPKG(pkg ...string) {
 	switch PM {
 	case "apt":
 		if hasNalaPM {
-			bash.Run(append([]string{`nala`, `install`, `-y`}, pkg...), "", nil, true)
+			bash.Run(append([]string{`nala`, `install`, `-y`}, pkg...), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 		} else {
-			bash.Run(append([]string{`apt`, `-y`, `install`}, pkg...), "", nil, true)
+			bash.Run(append([]string{`apt`, `-y`, `install`}, pkg...), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 		}
 	case "dnf":
 		bash.Run(append([]string{`dnf`, `-y`, `install`}, pkg...), "", nil, true)

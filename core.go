@@ -65,7 +65,7 @@ func installCore(opts *config) {
 	if PM == "dnf" {
 		progressBar.AddSize(8)
 	} else if PM == "apt" {
-		progressBar.AddSize(3)
+		progressBar.AddSize(4)
 		if !hasNalaPM {
 			progressBar.AddSize(1)
 		}
@@ -221,6 +221,8 @@ func installCore(opts *config) {
 	} else if PM == "apt" {
 		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
+		//todo: fix rkhunter trying to get mail setup
+
 		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
 		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
 	}
@@ -313,6 +315,11 @@ func installCore(opts *config) {
 		if hasNalaPM {
 			bash.Run([]string{`nala`, `update`}, "", nil)
 		}
+		core.progressBar.Step()
+
+		//* install ubuntu extras
+		core.progressBar.Msg("Installing Ubuntu Extras")
+		installPKG(`ubuntu-restricted-extras`)
 		core.progressBar.Step()
 	}
 
