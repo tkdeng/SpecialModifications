@@ -65,7 +65,7 @@ func installCore(opts *config) {
 	if PM == "dnf" {
 		progressBar.AddSize(7)
 	} else if PM == "apt" {
-		progressBar.AddSize(1)
+		// progressBar.AddSize(1)
 	}
 
 	if opts.bool("ufw") {
@@ -269,12 +269,12 @@ func installCore(opts *config) {
 	core.progressBar.Step()
 
 	//* install programming languages
-	if PM == "apt" {
+	/* if PM == "apt" {
 		//* install ubuntu extras
 		core.progressBar.Msg("Installing Ubuntu Extras")
 		installPKG(`ubuntu-restricted-extras`)
 		core.progressBar.Step()
-	}
+	} */
 
 	//* install python
 	core.progressBar.Msg("Installing Python")
