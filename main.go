@@ -77,12 +77,15 @@ func initPrompt() {
 		installCore()
 		initPrompt()
 	case 2:
+		//todo: install apps
 		fmt.Println("Not yet implemented!")
 		initPrompt()
 	case 3:
+		//todo: install theme (also detect desktop environment for different themes)
 		fmt.Println("Not yet implemented!")
 		initPrompt()
 	case 4:
+		//todo: update linux kernel
 		fmt.Println("Not yet implemented!")
 		initPrompt()
 	default:

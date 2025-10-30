@@ -87,7 +87,7 @@ func installCore() {
 
 	//* update
 	progressBar.Msg("Updating")
-	update()
+	update(true)
 	core.progressBar.Step()
 
 	//* install and remove apps
@@ -326,7 +326,7 @@ func installCore() {
 
 	//* update
 	core.progressBar.Msg("Updating")
-	update()
+	update(true)
 	core.progressBar.Step()
 }
 
