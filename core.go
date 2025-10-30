@@ -66,6 +66,9 @@ func installCore(opts *config) {
 		progressBar.AddSize(8)
 	} else if PM == "apt" {
 		progressBar.AddSize(3)
+		if PM == "apt" {
+			progressBar.AddSize(1)
+		}
 	}
 
 	if opts.bool("ufw") {
@@ -160,6 +163,18 @@ func installCore(opts *config) {
 		//* set password quality rules
 		bash.RunRaw(`if test -f "/etc/security/pwquality.conf"; then sed -r -i 's/^# difoc = (.*)$/  difoc = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minlen = (.*)$/  minlen = 4/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dcredit = (.*)$/  dcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ucredit = (.*)$/  ucredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# lcredit = (.*)$/  lcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ocredit = (.*)$/  ocredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minclass = (.*)$/  minclass = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# maxrepeat = (.*)$/  maxrepeat = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# gecoscheck = (.*)$/  gecoscheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dictcheck = (.*)$/  dictcheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usercheck = (.*)$/  usercheck = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usersubstr = (.*)$/  usersubstr = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# enforcing = (.*)$/  enforcing = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# retry = (.*)$/  retry = 3/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# local_users_only$/  local_users_only/m' "/etc/security/pwquality.conf"; fi`, "", nil)
 
+		core.progressBar.Step()
+	}
+
+	//todo: may install nala for apt
+	if PM == "apt" {
+		core.progressBar.Msg("Installing Nala")
+		installPKG("nala")
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
+		if out, err := bash.Run([]string{`which`, `nala`}, "", nil); err == nil && len(out) != 0 {
+			bash.Run([]string{`nala`, `update`}, "", nil)
+			hasNalaPM = true
+		}
 		core.progressBar.Step()
 	}
 
@@ -258,8 +273,6 @@ func installCore(opts *config) {
 		installPKG(`webp-pixbuf-loader`)
 		core.progressBar.Step()
 	} else if PM == "apt" {
-		//todo: install apt repos (flatpak and snap)
-
 		//* install flatpak
 		core.progressBar.Msg("Installing flatpak")
 		installPKG(`flatpak`)
@@ -281,7 +294,10 @@ func installCore(opts *config) {
 
 		bash.Run([]string{`apt`, `-y`, `clean`}, "", nil)
 		bash.Run([]string{`apt`, `-y`, `autoremove`}, "", nil)
-		bash.Run([]string{`apt`, `update`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
+		if hasNalaPM {
+			bash.Run([]string{`nala`, `update`}, "", nil)
+		}
 		core.progressBar.Step()
 	}
 
@@ -289,7 +305,10 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Disabling Time Wasting Programs")
 	bash.Run([]string{`systemctl`, `disable`, `accounts-daemon.service`}, "", nil) // is a potential securite risk
 	bash.Run([]string{`systemctl`, `disable`, `debug-shell.service`}, "", nil)     // opens a giant security hole
-	removePKG(`dmraid`, `device-mapper-multipath`)
+	removePKG(`dmraid`)
+	if PM == "dnf" {
+		removePKG(`device-mapper-multipath`)
+	}
 	core.progressBar.Step()
 
 	//* install programming languages
@@ -327,7 +346,11 @@ func installCore(opts *config) {
 		installPKG(`git`, `nodejs`, `npm`)
 	} else if PM == "apt" {
 		installPKG(`git`, `nodejs`)
-		bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil)
+		if hasNalaPM {
+			bash.Run([]string{`nala`, `install`, `-y`, `--no-install-recommends`, `npm`}, "", nil)
+		}else{
+			bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil)
+		}
 	}
 	core.progressBar.Step()
 
@@ -354,7 +377,10 @@ func installCore(opts *config) {
 		bash.Run([]string{`curl`, `-fsSL`, `https://download.docker.com/linux/ubuntu/gpg`, `-o`, `/etc/apt/keyrings/docker.asc`}, "", nil)
 		bash.Run([]string{`chmod`, `a+r`, `/etc/apt/keyrings/docker.asc`}, "", nil)
 		bash.Run([]string{`echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`}, "", nil)
-		bash.Run([]string{`apt`, `update`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
+		if hasNalaPM {
+			bash.Run([]string{`nala`, `update`}, "", nil)
+		}
 		installPKG(`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`)
 		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
 	}

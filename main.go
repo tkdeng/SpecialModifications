@@ -13,6 +13,7 @@ import (
 var falconTXT []byte
 
 var PM = ""
+var hasNalaPM = false
 var SSHClient = true
 var AssumeYes = false
 
@@ -30,6 +31,10 @@ func main() {
 	} else {
 		fmt.Println("Unsupported Linux Distribution")
 		return
+	}
+
+	if out, err := bash.Run([]string{`which`, `nala`}, "", nil); err == nil && len(out) != 0 {
+		hasNalaPM = true
 	}
 
 	SSHClient = !bash.If(`"$SSH_CLIENT" == "" && "$SSH_TTY" == ""`, "", nil)

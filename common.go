@@ -78,6 +78,14 @@ func update(cleanup ...bool) {
 			bash.Run([]string{`apt`, `-y`, `autoremove`, `--purge`}, "", nil, true)
 			bash.Run([]string{`apt`, `-y`, `autoclean`}, "", nil, true)
 			bash.Run([]string{`apt`, `-y`, `clean`}, "", nil, true)
+
+			if hasNalaPM {
+				bash.Run([]string{`nala`, `update`}, "", nil, true)
+				bash.Run([]string{`nala`, `upgrade`, `-y`}, "", nil, true)
+				bash.Run([]string{`nala`, `install`, `-y`}, "", nil, true)
+				bash.Run([]string{`nala`, `autoremove`, `-y`}, "", nil, true)
+				bash.Run([]string{`nala`, `clean`}, "", nil, true)
+			}
 		}
 	case "dnf":
 		bash.Run([]string{`dnf`, `-y`, `update`}, "", nil, true)
@@ -93,7 +101,11 @@ func update(cleanup ...bool) {
 func installPKG(pkg ...string) {
 	switch PM {
 	case "apt":
-		bash.Run(append([]string{`apt`, `-y`, `install`}, pkg...), "", nil, true)
+		if hasNalaPM {
+			bash.Run(append([]string{`nala`, `install`, `-y`}, pkg...), "", nil, true)
+		} else {
+			bash.Run(append([]string{`apt`, `-y`, `install`}, pkg...), "", nil, true)
+		}
 	case "dnf":
 		bash.Run(append([]string{`dnf`, `-y`, `install`}, pkg...), "", nil, true)
 	}
@@ -103,11 +115,13 @@ func removePKG(pkg ...string) {
 	//todo: uninstall packages
 	switch PM {
 	case "apt":
-		bash.Run(append([]string{`apt`, `-y`, `remove`}, pkg...), "", nil, true)
-		// bash.Run([]string{`apt`, `-y`, `autoremove`}, "", nil, true)
+		if hasNalaPM {
+			bash.Run(append([]string{`nala`, `remove`, `-y`}, pkg...), "", nil, true)
+		} else {
+			bash.Run(append([]string{`apt`, `-y`, `remove`}, pkg...), "", nil, true)
+		}
 	case "dnf":
 		bash.Run(append([]string{`dnf`, `-y`, `remove`}, pkg...), "", nil, true)
-		// bash.Run([]string{`dnf`, `-y`, `autoremove`}, "", nil, true)
 	}
 }
 
