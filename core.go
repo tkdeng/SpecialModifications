@@ -72,6 +72,10 @@ func installCore(opts *config) {
 		progressBar.AddSize(1)
 	}
 
+	if opts.bool("disableSSH") {
+		progressBar.AddSize(1)
+	}
+
 	fmt.Println("Installing Special Modifications...")
 
 	//* install files
@@ -147,6 +151,17 @@ func installCore(opts *config) {
 
 	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=/#DNSSEC=/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil)
 	core.progressBar.Step()
+
+	//* disable ssh for desktop
+	if !SSHClient && opts.bool("disableSSH") {
+		bash.Run([]string{`systemctl`, `disable`, `sshd`, `--now`}, "", nil)
+		bash.RunRaw(`if test -f "/etc/ssh/sshd_config"; then sed -r -i 's/^PermitRootLogin (.*)$/PermitRootLogin no/m' "/etc/ssh/sshd_config"; sed -r -i 's/^PasswordAuthentication (.*)$/PasswordAuthentication no/m' "/etc/ssh/sshd_config"; fi`, "", nil)
+
+		//* set password quality rules
+		bash.RunRaw(`if test -f "/etc/security/pwquality.conf"; then sed -r -i 's/^# difoc = (.*)$/  difoc = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minlen = (.*)$/  minlen = 4/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dcredit = (.*)$/  dcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ucredit = (.*)$/  ucredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# lcredit = (.*)$/  lcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ocredit = (.*)$/  ocredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minclass = (.*)$/  minclass = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# maxrepeat = (.*)$/  maxrepeat = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# gecoscheck = (.*)$/  gecoscheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dictcheck = (.*)$/  dictcheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usercheck = (.*)$/  usercheck = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usersubstr = (.*)$/  usersubstr = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# enforcing = (.*)$/  enforcing = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# retry = (.*)$/  retry = 3/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# local_users_only$/  local_users_only/m' "/etc/security/pwquality.conf"; fi`, "", nil)
+
+		core.progressBar.Step()
+	}
 
 	//* install security tools
 	core.progressBar.Msg("Installing Security Tools")
