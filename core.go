@@ -58,14 +58,14 @@ func installCore(opts *config) {
 
 	core := &coreInstaller{progressBar: progressBar, opts: opts}
 
-	progressBar.SetSize(20)
+	progressBar.SetSize(19)
 
 	core.countFiles("")
 
 	if PM == "dnf" {
-		progressBar.AddSize(7)
+		progressBar.AddSize(8)
 	} else if PM == "apt" {
-		// progressBar.AddSize(1)
+		progressBar.AddSize(3)
 	}
 
 	if opts.bool("ufw") {
@@ -259,6 +259,30 @@ func installCore(opts *config) {
 		core.progressBar.Step()
 	} else if PM == "apt" {
 		//todo: install apt repos (flatpak and snap)
+
+		//* install flatpak
+		core.progressBar.Msg("Installing flatpak")
+		installPKG(`flatpak`)
+		bash.Run([]string{`flatpak`, `remote-add`, `--if-not-exists`, `flathub`, `https://flathub.org/repo/flathub.flatpakrepo`}, "", nil)
+		// bash.Run([]string{`flatpak`, `update`, `-y`, `--noninteractive`}, "", nil)
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.tchx84.Flatseal`}, "", nil)
+		core.progressBar.Step()
+
+		//* install snap
+		core.progressBar.Msg("Installing snap")
+		installPKG(`snap`)
+		bash.Run([]string{`ln`, `-s`, `/var/lib/snapd/snap /snap`}, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `snapd`, `--now`}, "", nil)
+		bash.Run([]string{`snap`, `refresh`}, "", nil) // fix: not seeded yet will trigger and fix itself for the next command
+		bash.Run([]string{`snap`, `install`, `core`}, "", nil)
+		bash.Run([]string{`snap`, `refresh`, `core`}, "", nil)
+		bash.Run([]string{`snap`, `refresh`}, "", nil)
+		core.progressBar.Step()
+
+		bash.Run([]string{`apt`, `-y`, `clean`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `autoremove`}, "", nil)
+		bash.Run([]string{`apt`, `update`}, "", nil)
+		core.progressBar.Step()
 	}
 
 	//* disable startups
@@ -299,12 +323,21 @@ func installCore(opts *config) {
 
 	//* install git and node
 	core.progressBar.Msg("Installing Git and Node")
-	installPKG(`git`, `nodejs`, `npm`)
+	if PM == "dnf" {
+		installPKG(`git`, `nodejs`, `npm`)
+	} else if PM == "apt" {
+		installPKG(`git`, `nodejs`)
+		bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil)
+	}
 	core.progressBar.Step()
 
 	//* install golang
 	core.progressBar.Msg("Installing Go")
-	installPKG(`golang`, `pcre-devel`) //todo: lookup golang install for apt
+	if PM == "dnf" {
+		installPKG(`golang`, `pcre-devel`)
+	} else if PM == "apt" {
+		installPKG(`golang`, `libpcre3-dev`)
+	}
 	core.progressBar.Step()
 
 	//* docker
@@ -316,23 +349,35 @@ func installCore(opts *config) {
 		installPKG(`docker`)
 		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
 	} else if PM == "apt" {
-		//todo: lookup apt version of docker install
+		installPKG(`ca-certificates`, `curl`)
+		bash.Run([]string{`install`, `-m`, `0755`, `-d`, `/etc/apt/keyrings`}, "", nil)
+		bash.Run([]string{`curl`, `-fsSL`, `https://download.docker.com/linux/ubuntu/gpg`, `-o`, `/etc/apt/keyrings/docker.asc`}, "", nil)
+		bash.Run([]string{`chmod`, `a+r`, `/etc/apt/keyrings/docker.asc`}, "", nil)
+		bash.Run([]string{`echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`}, "", nil)
+		bash.Run([]string{`apt`, `update`}, "", nil)
+		installPKG(`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`)
+		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
 	}
 	core.progressBar.Step()
 
 	//* install common apps
 	core.progressBar.Msg("Installing Common Packages")
 
-	//todo: lookup apt equivalent for some packages
-	installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`, `selinux-policy-devel`)
+	if PM == "dnf" {
+		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`, `selinux-policy-devel`)
+		bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil)
+	} else if PM == "apt" {
+		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfs-3g`, `exfatprogs`, `udftools`, `p7zip`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
+	}
 	bash.Run([]string{`systemctl`, `enable`, `fstrim.timer`, `--now`}, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `systemd-oomd.service`, `--now`}, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil)
 	core.progressBar.Step()
 
 	//* install fonts
-	installPKG(`jetbrains-mono-fonts`)
-	core.progressBar.Step()
+	if PM == "dnf" {
+		installPKG(`jetbrains-mono-fonts`)
+		core.progressBar.Step()
+	}
 
 	//* update
 	core.progressBar.Msg("Updating")

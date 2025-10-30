@@ -74,7 +74,7 @@ func update(cleanup ...bool) {
 
 		if len(cleanup) != 0 && cleanup[0] {
 			bash.Run([]string{`dpkg`, `--configure`, `-a`}, "", nil, true)
-			bash.Run([]string{`apt`, `-f`, `install`, `-y`}, "", nil, true)
+			bash.Run([]string{`apt`, `-y`, `-f`, `install`}, "", nil, true)
 			bash.Run([]string{`apt`, `-y`, `autoremove`, `--purge`}, "", nil, true)
 			bash.Run([]string{`apt`, `-y`, `autoclean`}, "", nil, true)
 			bash.Run([]string{`apt`, `-y`, `clean`}, "", nil, true)
