@@ -64,7 +64,7 @@ func installCore() {
 
 	core := &coreInstaller{progressBar: progressBar, opts: opts}
 
-	progressBar.SetSize(18)
+	progressBar.SetSize(20)
 
 	core.countFiles("")
 
@@ -110,6 +110,14 @@ func installCore() {
 
 	//* secure dns
 	core.progressBar.Msg("Securing DNS")
+
+	// fix moved systemd/resolved.conf file
+	if _, err := os.Stat("/etc/systemd/resolved.conf"); err != nil {
+		if _, err := os.Stat("/usr/lib/systemd/resolved.conf"); err == nil {
+			bash.Run([]string{`ln`, `-s`, `/usr/lib/systemd/resolved.conf`, `/etc/systemd/resolved.conf`}, "", nil)
+		}
+	}
+
 	if file, err := os.Open("/etc/systemd/resolved.conf"); err == nil {
 		regex.Comp(`(?m)^#?DNSSEC=.*$`).RepFile(file, []byte(`DNSSEC=yes`), false)
 		regex.Comp(`(?m)^#?DNSOverTLS=.*$`).RepFile(file, []byte(`DNSOverTLS=yes`), false)
@@ -136,13 +144,14 @@ func installCore() {
 	}
 
 	bash.Run([]string{`systemctl`, `restart`, `systemd-resolved`}, "", nil)
+	bash.Run([]string{`resolvectl`, `flush-caches`}, "", nil)
 	core.progressBar.Step()
 
 	core.progressBar.Msg("Testing DNS")
-	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=.*$/DNSSEC=allow-downgrade/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; fi`, "", nil)
+	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=.*$/DNSSEC=allow-downgrade/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil)
 	core.progressBar.Step()
 
-	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=/#DNSSEC=/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; fi`, "", nil)
+	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=/#DNSSEC=/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil)
 	core.progressBar.Step()
 
 	//* install security tools
@@ -170,6 +179,7 @@ func installCore() {
 	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
 	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
 	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.Run([]string{`freshclam`}, "", nil)
 	core.progressBar.Step()
 
 	//* install other security tools
