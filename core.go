@@ -90,15 +90,6 @@ func installCore() {
 	update(true)
 	core.progressBar.Step()
 
-	//* install and remove apps
-	progressBar.Msg("Installing Core Apps")
-	installPKG("qemu-guest-agent", "tuned")
-	core.progressBar.Step()
-
-	progressBar.Msg("Removing Unneeded Apps")
-	removePKG("cifs-utils", "samba-common-libs", "samba-client-libs", "libsmbclient", "libwbclient", "samba-common", "sssd-krb5-common", "sssd-ipa", "sssd-nfs-idmap", "sssd-ldap", "sssd-client", "sssd-ad", "sssd-common", "sssd-krb5", "sssd-common-pac")
-	core.progressBar.Step()
-
 	//* install ufw
 	if core.opts.bool("ufw") {
 		core.progressBar.Msg("Installing UFW")
@@ -314,7 +305,7 @@ func installCore() {
 	core.progressBar.Msg("Installing Common Packages")
 
 	//todo: lookup apt equivalent for some packages
-	installPKG(`nano`, `micro`, `neofetch`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`, `selinux-policy-devel`)
+	installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`, `selinux-policy-devel`)
 	bash.Run([]string{`systemctl`, `enable`, `fstrim.timer`, `--now`}, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `systemd-oomd.service`, `--now`}, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil)
