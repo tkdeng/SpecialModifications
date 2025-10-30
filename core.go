@@ -334,13 +334,7 @@ func installCore(opts *config) {
 	core.progressBar.Step()
 
 	//* install programming languages
-	/* if PM == "apt" {
-		//* install ubuntu extras
-		core.progressBar.Msg("Installing Ubuntu Extras")
-		// installPKG(`ubuntu-restricted-extras`)
-		bash.RunRaw(`DEBIAN_FRONTEND=noninteractive apt install -y ubuntu-restricted-extras`, "", nil)
-		core.progressBar.Step()
-	} */
+	core.progressBar.Msg("Installing programming languages")
 
 	//* install python
 	core.progressBar.Msg("Installing Python")
