@@ -21,9 +21,7 @@ type coreInstaller struct {
 	opts        *config
 }
 
-func installConfig() *config {
-	opts := newConfig()
-
+func installConfig(opts *config) {
 	if PM == "dnf" {
 		if opts.addBool("ufw", "Would you like to install UFW (Uncomplicated Firewall)?", true) {
 			fmt.Println("Using UFW...")
@@ -52,13 +50,9 @@ func installConfig() *config {
 	}
 
 	time.Sleep(1 * time.Second)
-
-	return opts
 }
 
-func installCore() {
-	opts := installConfig()
-
+func installCore(opts *config) {
 	progressBar := bash.NewProgressBar("Installing")
 	defer progressBar.Stop()
 

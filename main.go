@@ -48,9 +48,11 @@ func main() {
 		return
 	}
 
-	if cliArgs["install"] == "true" || cliArgs["core"] == "true" || cliArgs["i"] == "true" {
+	if cliArgs["core"] == "true" || cliArgs["c"] == "true" {
 		fmt.Println("")
-		installCore()
+		opts := newConfig()
+		installConfig(opts)
+		installCore(opts)
 		return
 	} else if cliArgs["apps"] == "true" || cliArgs["a"] == "true" {
 		fmt.Println("")
@@ -64,17 +66,29 @@ func main() {
 		fmt.Println("")
 		fmt.Println("Not yet implemented")
 		return
+	} else if cliArgs["all"] == "true" || cliArgs["install"] == "true" || cliArgs["i"] == "true" {
+		//todo: automatically run all install methods and kernel updates
+		// may also include system reboot
+		// also remember to include getting all config options before running anything
+
+		opts := newConfig()
+		installConfig(opts)
+
+		installCore(opts)
+		return
 	}
 
 	initPrompt()
 }
 
 func initPrompt() {
-	sel := bash.InputSelect("What would you like to do?", "Exit", "Install Core", "Install Apps", "Install Theme", "Update Linux Kernel")
+	sel := bash.InputSelect("What would you like to do?", "Exit", "Install Core", "Install Apps", "Install Theme", "Update Linux Kernel", "Run All")
 
 	switch sel {
 	case 1:
-		installCore()
+		opts := newConfig()
+		installConfig(opts)
+		installCore(opts)
 		initPrompt()
 	case 2:
 		//todo: install apps
@@ -88,6 +102,15 @@ func initPrompt() {
 		//todo: update linux kernel
 		fmt.Println("Not yet implemented!")
 		initPrompt()
+	case 5:
+		//todo: automatically run all install methods and kernel updates
+		// may also include system reboot
+		// also remember to include getting all config options before running anything
+
+		opts := newConfig()
+		installConfig(opts)
+
+		installCore(opts)
 	default:
 		fmt.Println("Exiting...")
 	}
