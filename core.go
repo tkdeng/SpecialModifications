@@ -222,6 +222,14 @@ func installCore(opts *config) {
 		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
 		//todo: fix rkhunter trying to get mail setup
+		// seemed to freeze up at:
+		//   the file python3.dll was found in c:\ or c:\dlls, which indicates a possible attempt at DLL search-order hijacking
+		//
+		// this gets repeated a lot:
+		//   /usr/share/bleachbit/bleachbit/windows.py:157: SyntaxWarning: invalid escape sequence
+		//
+		// manually hitting ctrl+c or enter was necessary to continue process:
+		//   WEB_CMD configuration option: Relative pathname: "/bin/false"
 
 		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
 		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
@@ -279,6 +287,7 @@ func installCore(opts *config) {
 		bash.Run([]string{`dnf`, `-y`, `distro-sync`}, "", nil)
 		core.progressBar.Step()
 
+		//* install multimedia
 		core.progressBar.Msg("Updating multimedia codecs")
 		bash.Run([]string{`dnf`, `-y`, `--skip-broken`, `install`, `@multimedia`}, "", nil)
 		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `multimedia`, `--setop=install_weak_deps=False`, `--exclude=PackageKit-gstreamer-plugin`, `--skip-broken`}, "", nil)
