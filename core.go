@@ -263,6 +263,8 @@ func installCore(opts *config) {
 		core.progressBar.Step()
 	}
 
+	//todo: test if moving security after programming languages causes issues
+
 	//* disable startups
 	core.progressBar.Msg("Disabling Time Wasting Programs")
 	bash.Run([]string{`systemctl`, `disable`, `accounts-daemon.service`}, "", nil) // is a potential securite risk
@@ -392,6 +394,8 @@ func installCore(opts *config) {
 		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
 		//todo: test if using apt instead of nala changes rkhunter gui issues
+
+		//todo: check issue with bleachbit or something else causing gui os restart request for updates
 
 		//todo: fix rkhunter trying to get mail setup
 		// seemed to freeze up at:
