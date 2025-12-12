@@ -84,12 +84,12 @@ func installCore(opts *config) {
 	//* install files
 	progressBar.Msg("Installing Files")
 	core.files()
-	core.progressBar.Step()
+	progressBar.Step()
 
 	//* update
 	progressBar.Msg("Updating")
 	update(true)
-	core.progressBar.Step()
+	progressBar.Step()
 
 	//* install ufw
 	if core.opts.bool("ufw") {
@@ -177,77 +177,6 @@ func installCore(opts *config) {
 		}
 		core.progressBar.Step()
 	}
-
-	//* install security tools
-	core.progressBar.Msg("Installing Security Tools")
-
-	//* install fail2ban
-	core.progressBar.Msg("Installing Fail2Ban")
-	installPKG(`fail2ban`)
-	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil)
-	core.progressBar.Step()
-
-	//* install clamav
-	core.progressBar.Msg("Installing Clamav")
-	if PM == "dnf" {
-		installPKG(`clamav`, `clamd`, `clamav-update`, `cronie`)
-	} else if PM == "apt" {
-		installPKG(`clamav`, `clamav-daemon`, `clamav-update`, `cronie`)
-	}
-	bash.Run([]string{`systemctl`, `stop`, `clamav-freshclam`}, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `--now`, `clamav-freshclam`}, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
-	core.progressBar.Step()
-
-	//* fix clamav permissions
-	os.MkdirAll("/VirusScan/quarantine", 0664)
-	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
-	core.progressBar.Step()
-
-	//* install other security tools
-	core.progressBar.Msg("Installing Security Tools")
-	if PM == "dnf" {
-		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `dnf-automatic`, `selinux-policy-devel`)
-
-		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
-		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
-	} else if PM == "apt" {
-		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
-		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
-
-		//todo: fix rkhunter trying to get mail setup
-		// seemed to freeze up at:
-		//   the file python3.dll was found in c:\ or c:\dlls, which indicates a possible attempt at DLL search-order hijacking
-		//
-		// this gets repeated a lot:
-		//   /usr/share/bleachbit/bleachbit/windows.py:157: SyntaxWarning: invalid escape sequence
-		//
-		// manually hitting ctrl+c or enter was necessary to continue process:
-		//   WEB_CMD configuration option: Relative pathname: "/bin/false"
-
-		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
-		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
-	}
-	core.progressBar.Step()
-
-	core.progressBar.Msg("Initializing RKhunter")
-	bash.Run([]string{`rkhunter`, `--update`}, "", nil, true)
-	bash.Run([]string{`rkhunter`, `--propupd`}, "", nil, true)
-
-	//* schedule scans
-	bash.RunRaw(`if ! [[ $(crontab -l) == *"# clamav-scan"* ]] ; then crontab -l | { cat; echo '0 2 * * * nice -n 15 clamscan && clamscan -r --bell --move="/VirusScan/quarantine" --exclude-dir="/VirusScan/quarantine" --exclude-dir="/home/$USER/.clamtk/viruses" --exclude-dir="smb4k" --exclude-dir="/run/user/$USER/gvfs" --exclude-dir="/home/$USER/.gvfs" --exclude-dir=".thunderbird" --exclude-dir=".mozilla-thunderbird" --exclude-dir=".evolution" --exclude-dir="Mail" --exclude-dir="kmail" --exclude-dir="^/sys" / # clamav-scan'; } | crontab -; fi`, "", nil)
-	core.progressBar.Step()
-
-	//todo: add scheduled scans to virus scanning app
-	// also make new virus scanning app that uses clamav
 
 	if PM == "dnf" {
 		//* install rpm repos
@@ -413,6 +342,82 @@ func installCore(opts *config) {
 		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
 	}
 	core.progressBar.Step()
+
+	//todo: check docker daemon.json from old FedoraLinux project files,
+	// and see what it was used for an if its needed
+
+	//* install security tools
+	core.progressBar.Msg("Installing Security Tools")
+
+	//* install fail2ban
+	core.progressBar.Msg("Installing Fail2Ban")
+	installPKG(`fail2ban`)
+	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil)
+	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil)
+	core.progressBar.Step()
+
+	//* install clamav
+	core.progressBar.Msg("Installing Clamav")
+	if PM == "dnf" {
+		installPKG(`clamav`, `clamd`, `clamav-update`, `cronie`)
+	} else if PM == "apt" {
+		installPKG(`clamav`, `clamav-daemon`, `clamav-update`, `cronie`)
+	}
+	bash.Run([]string{`systemctl`, `stop`, `clamav-freshclam`}, "", nil)
+	bash.Run([]string{`freshclam`}, "", nil)
+	bash.Run([]string{`systemctl`, `enable`, `--now`, `clamav-freshclam`}, "", nil)
+	bash.Run([]string{`freshclam`}, "", nil)
+	core.progressBar.Step()
+
+	//* fix clamav permissions
+	os.MkdirAll("/VirusScan/quarantine", 0664)
+	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.Run([]string{`freshclam`}, "", nil)
+	core.progressBar.Step()
+
+	//* install other security tools
+	core.progressBar.Msg("Installing Security Tools")
+	if PM == "dnf" {
+		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `dnf-automatic`, `selinux-policy-devel`)
+
+		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
+	} else if PM == "apt" {
+		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+
+		//todo: test if using apt instead of nala changes rkhunter gui issues
+
+		//todo: fix rkhunter trying to get mail setup
+		// seemed to freeze up at:
+		//   the file python3.dll was found in c:\ or c:\dlls, which indicates a possible attempt at DLL search-order hijacking
+		//
+		// this gets repeated a lot:
+		//   /usr/share/bleachbit/bleachbit/windows.py:157: SyntaxWarning: invalid escape sequence
+		//
+		// manually hitting ctrl+c or enter was necessary to continue process:
+		//   WEB_CMD configuration option: Relative pathname: "/bin/false"
+
+		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
+		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
+	}
+	core.progressBar.Step()
+
+	core.progressBar.Msg("Initializing RKhunter")
+	bash.Run([]string{`rkhunter`, `--update`}, "", nil, true)
+	bash.Run([]string{`rkhunter`, `--propupd`}, "", nil, true)
+
+	//* schedule scans
+	bash.RunRaw(`if ! [[ $(crontab -l) == *"# clamav-scan"* ]] ; then crontab -l | { cat; echo '0 2 * * * nice -n 15 clamscan && clamscan -r --bell --move="/VirusScan/quarantine" --exclude-dir="/VirusScan/quarantine" --exclude-dir="/home/$USER/.clamtk/viruses" --exclude-dir="smb4k" --exclude-dir="/run/user/$USER/gvfs" --exclude-dir="/home/$USER/.gvfs" --exclude-dir=".thunderbird" --exclude-dir=".mozilla-thunderbird" --exclude-dir=".evolution" --exclude-dir="Mail" --exclude-dir="kmail" --exclude-dir="^/sys" / # clamav-scan'; } | crontab -; fi`, "", nil)
+	core.progressBar.Step()
+
+	//todo: add scheduled scans to virus scanning app
+	// also make new virus scanning app that uses clamav
 
 	//* install common apps
 	core.progressBar.Msg("Installing Common Packages")
