@@ -216,10 +216,12 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Installing Security Tools")
 	if PM == "dnf" {
 		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `dnf-automatic`, `selinux-policy-devel`)
+
 		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
 	} else if PM == "apt" {
-		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
 		//todo: fix rkhunter trying to get mail setup
 		// seemed to freeze up at:
