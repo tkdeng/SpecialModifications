@@ -500,6 +500,11 @@ func (core *coreInstaller) installFiles(filePerms *map[string]os.FileMode, dir s
 				continue
 			}
 
+			// skip package manager specific files
+			if goutil.Contains(supportedPM, file.Name()) && PM != file.Name() {
+				continue
+			}
+
 			if file.IsDir() {
 				if dir, err := os.Stat(path); err == nil {
 					dirPerm = dir.Mode().Perm()

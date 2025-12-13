@@ -22,6 +22,8 @@ var AssumeYes = false
 
 var cliArgs = goutil.MapArgs()
 
+var supportedPM = []string{"apt", "dnf"}
+
 func main() {
 	fmt.Println("Special Modifacations by TKD Engineer")
 
