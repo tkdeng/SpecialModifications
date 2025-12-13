@@ -125,6 +125,12 @@ func initPrompt() {
 		initPrompt()
 	case 2:
 		//* install apps
+		if SSHClient {
+			fmt.Println("App installation is not supported over SSH connections.")
+			initPrompt()
+			return
+		}
+
 		opts := newConfig()
 		installAppsConfig(opts)
 		installApps(opts)
@@ -145,7 +151,15 @@ func initPrompt() {
 		opts := newConfig()
 		installConfig(opts)
 
+		if !SSHClient {
+			installAppsConfig(opts)
+		}
+
 		installCore(opts)
+
+		if !SSHClient {
+			installApps(opts)
+		}
 	default:
 		fmt.Println("Exiting...")
 	}

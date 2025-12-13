@@ -73,11 +73,11 @@ func installApps(opts *config) {
 	//* install apps
 	if PM == "dnf" {
 		progressBar.Msg("Installing Apps")
-		installPKG("gparted", "chromium", "firefox", "blender", "gimp", "nm-connection-editor", "gnome-boxes")
+		installPKG("gparted", "chromium", "firefox", "blender", "gimp", "gnome-boxes")
 		progressBar.Step()
 	} else if PM == "apt" {
 		progressBar.Msg("Installing Apps")
-		installPKG("gparted", "chromium-browser", "firefox", "blender", "gimp", "nm-connection-editor", "gnome-boxes")
+		installPKG("gparted", "chromium-browser", "firefox", "blender", "gimp", "gnome-boxes")
 		progressBar.Step()
 	}
 
@@ -191,11 +191,11 @@ func (apps *appsInstaller) gnome() {
 	//* install gnome apps
 	if PM == "dnf" {
 		apps.progressBar.Msg("Installing Gnome Apps")
-		installPKG("dconf-editor", "gnome-tweaks")
+		installPKG("dconf-editor", "gnome-tweaks", "nm-connection-editor")
 		apps.progressBar.Step()
 	} else if PM == "apt" {
 		apps.progressBar.Msg("Installing Gnome Apps")
-		installPKG("dconf-editor", "gnome-tweak-tool")
+		installPKG("dconf-editor", "gnome-tweak-tool", "network-manager-gnome")
 		apps.progressBar.Step()
 	}
 

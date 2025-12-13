@@ -259,11 +259,10 @@ func installCore(opts *config) {
 
 		//* install ubuntu extras
 		core.progressBar.Msg("Installing Ubuntu Extras")
-		installPKG(`ubuntu-restricted-extras`)
+		// installPKG(`ubuntu-restricted-extras`)
+		bash.Run(append([]string{`apt`, `-y`, `install`}, "ubuntu-restricted-extras"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 		core.progressBar.Step()
 	}
-
-	//todo: test if moving security after programming languages causes issues
 
 	//* disable startups
 	core.progressBar.Msg("Disabling Time Wasting Programs")
@@ -345,9 +344,6 @@ func installCore(opts *config) {
 	}
 	core.progressBar.Step()
 
-	//todo: check docker daemon.json from old FedoraLinux project files,
-	// and see what it was used for an if its needed
-
 	//* install security tools
 	core.progressBar.Msg("Installing Security Tools")
 
@@ -394,10 +390,13 @@ func installCore(opts *config) {
 		installPKG(`bleachbit`, `pwgen`, `debconf-utils`, `apparmor-utils`)
 
 		//todo: fix gui prompt for unattended-upgrades
-		// maybe nogui only works for individual packages (or maybe only for apt and not)
+		// maybe nogui only works for individual packages (or maybe only for apt and not nala)
 
-		installPKG("rkhunter")
-		installPKG("unattended-upgrades")
+		// installPKG("rkhunter")
+		// installPKG("unattended-upgrades")
+
+		bash.Run(append([]string{`apt`, `-y`, `install`}, "rkhunter"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+		bash.Run(append([]string{`apt`, `-y`, `install`}, "unattended-upgrades"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 
 		//todo: test if using apt instead of nala changes rkhunter gui issues
 
