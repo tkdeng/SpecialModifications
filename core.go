@@ -98,7 +98,7 @@ func installCore(opts *config) {
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `ufw`}, "", nil, true)
 
 		if !SSHClient {
-			bash.RunRaw(`for i in $(ufw status | wc -l); do ufw --force delete 1; done`, "", nil, true)
+			bash.RunRaw(`for i in $(ufw status | wc -l); do ufw --force delete 1; done`, "", nil)
 		}
 
 		bash.Run([]string{`ufw`, `default`, `deny`, `incoming`}, "", nil, true)
@@ -354,7 +354,7 @@ func installCore(opts *config) {
 	//* install fail2ban
 	core.progressBar.Msg("Installing Fail2Ban")
 	installPKG(`fail2ban`)
-	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil, true)
+	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil)
 	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil, true)
 	core.progressBar.Step()
 
@@ -373,12 +373,12 @@ func installCore(opts *config) {
 
 	//* fix clamav permissions
 	os.MkdirAll("/VirusScan/quarantine", 0664)
-	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
-	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
-	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
-	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
-	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
-	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
+	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
 	bash.Run([]string{`freshclam`}, "", nil, true)
 	core.progressBar.Step()
 
@@ -391,7 +391,13 @@ func installCore(opts *config) {
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil, true)
 	} else if PM == "apt" {
 		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
-		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
+		installPKG(`bleachbit`, `pwgen`, `debconf-utils`, `apparmor-utils`)
+
+		//todo: fix gui prompt for unattended-upgrades
+		// maybe nogui only works for individual packages (or maybe only for apt and not)
+
+		installPKG("rkhunter")
+		installPKG("unattended-upgrades")
 
 		//todo: test if using apt instead of nala changes rkhunter gui issues
 
