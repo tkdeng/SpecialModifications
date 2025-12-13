@@ -73,11 +73,15 @@ func installApps(opts *config) {
 	//* install apps
 	if PM == "dnf" {
 		progressBar.Msg("Installing Apps")
-		installPKG("gparted", "chromium", "firefox", "blender", "gimp", "gnome-boxes")
+		installPKG("gparted", "chromium", "firefox", "blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
 		progressBar.Step()
 	} else if PM == "apt" {
 		progressBar.Msg("Installing Apps")
-		installPKG("gparted", "chromium-browser", "firefox", "blender", "gimp", "gnome-boxes")
+
+		bash.Run([]string{`add-apt-repository`, `-y`, `ppa:kdenlive/kdenlive-stable`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
+
+		installPKG("gparted", "chromium-browser", "firefox", "blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
 		progressBar.Step()
 	}
 
@@ -167,7 +171,7 @@ func installApps(opts *config) {
 	progressBar.Step()
 
 	progressBar.Msg("Installing Kdenlive")
-	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.kdenlive.kdenlive`}, "", nil, true)
+	// bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.kdenlive.kdenlive`}, "", nil, true)
 	progressBar.Step()
 
 	progressBar.Msg("Installing OBS Studio")
