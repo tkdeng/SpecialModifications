@@ -39,7 +39,7 @@ func installApps(opts *config) {
 
 	apps := &appsInstaller{progressBar: progressBar, opts: opts}
 
-	progressBar.SetSize(7)
+	progressBar.SetSize(8)
 
 	if PM == "dnf" {
 		progressBar.AddSize(1)
@@ -172,6 +172,10 @@ func installApps(opts *config) {
 
 	progressBar.Msg("Installing OBS Studio")
 	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.obsproject.Studio`}, "", nil, true)
+	progressBar.Step()
+
+	progressBar.Msg("Installing Spotify")
+	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.spotify.Client`}, "", nil, true)
 	progressBar.Step()
 
 	//* install desktop environment specific apps
