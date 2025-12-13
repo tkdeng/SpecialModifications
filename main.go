@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
 	"os"
 
 	bash "github.com/tkdeng/gobash"
 	"github.com/tkdeng/goutil"
+	"github.com/tkdeng/regex"
 )
 
 //go:embed assets/falcon.txt
@@ -15,6 +17,7 @@ var falconTXT []byte
 var PM = ""
 var hasNalaPM = false
 var SSHClient = true
+var DesktopENV = []string{}
 var AssumeYes = false
 
 var cliArgs = goutil.MapArgs()
@@ -39,6 +42,17 @@ func main() {
 
 	SSHClient = !bash.If(`"$SSH_CLIENT" == "" && "$SSH_TTY" == ""`, "", nil)
 
+	if out, err := bash.RunRaw(`ls /usr/share/xsessions/*.desktop`, "", nil); err == nil && len(out) != 0 {
+		list := bytes.Split(out, []byte{'\n'})
+		reg := regex.Comp(`^.*\/([\w_\-]+)\.desktop$`)
+		for _, item := range list {
+			item = bytes.TrimSpace(item)
+			if len(item) != 0 && reg.Match(item) {
+				DesktopENV = append(DesktopENV, string(reg.Rep(item, []byte("$1"))))
+			}
+		}
+	}
+
 	if cliArgs["help"] == "true" || cliArgs["h"] == "true" {
 		//todo: add help message
 		return
@@ -54,14 +68,18 @@ func main() {
 	}
 
 	if cliArgs["core"] == "true" || cliArgs["c"] == "true" {
+		//* install core
 		fmt.Println("")
 		opts := newConfig()
 		installConfig(opts)
 		installCore(opts)
 		return
 	} else if cliArgs["apps"] == "true" || cliArgs["a"] == "true" {
+		//* install apps
 		fmt.Println("")
-		fmt.Println("Not yet implemented")
+		opts := newConfig()
+		installAppsConfig(opts)
+		installApps(opts)
 		return
 	} else if cliArgs["theme"] == "true" || cliArgs["t"] == "true" {
 		fmt.Println("")
@@ -79,7 +97,16 @@ func main() {
 		opts := newConfig()
 		installConfig(opts)
 
+		if !SSHClient {
+			installAppsConfig(opts)
+		}
+
 		installCore(opts)
+
+		if !SSHClient {
+			installApps(opts)
+		}
+
 		return
 	}
 
@@ -91,13 +118,16 @@ func initPrompt() {
 
 	switch sel {
 	case 1:
+		//* install core
 		opts := newConfig()
 		installConfig(opts)
 		installCore(opts)
 		initPrompt()
 	case 2:
-		//todo: install apps
-		fmt.Println("Not yet implemented!")
+		//* install apps
+		opts := newConfig()
+		installAppsConfig(opts)
+		installApps(opts)
 		initPrompt()
 	case 3:
 		//todo: install theme (also detect desktop environment for different themes)
