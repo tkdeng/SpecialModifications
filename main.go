@@ -72,29 +72,54 @@ func main() {
 	if cliArgs["core"] == "true" || cliArgs["c"] == "true" {
 		//* install core
 		fmt.Println("")
+
+		lock := bash.SleepLock()
+
 		opts := newConfig()
 		installConfig(opts)
 		installCore(opts)
+
+		lock.Release()
+
 		return
 	} else if cliArgs["apps"] == "true" || cliArgs["a"] == "true" {
 		//* install apps
 		fmt.Println("")
+
+		lock := bash.SleepLock()
+
 		opts := newConfig()
 		installAppsConfig(opts)
 		installApps(opts)
+
+		lock.Release()
 		return
 	} else if cliArgs["theme"] == "true" || cliArgs["t"] == "true" {
+		//* install theme
 		fmt.Println("")
+
+		lock := bash.SleepLock()
+
 		fmt.Println("Not yet implemented")
+		
+		lock.Release()
 		return
 	} else if cliArgs["update-kernel"] == "true" || cliArgs["kernel"] == "true" || cliArgs["k"] == "true" {
+		//* update linux kernel
 		fmt.Println("")
+
+		lock := bash.SleepLock()
+
 		fmt.Println("Not yet implemented")
+
+		lock.Release()
 		return
 	} else if cliArgs["all"] == "true" || cliArgs["install"] == "true" || cliArgs["i"] == "true" {
 		//todo: automatically run all install methods and kernel updates
 		// may also include system reboot
 		// also remember to include getting all config options before running anything
+
+		lock := bash.SleepLock()
 
 		opts := newConfig()
 		installConfig(opts)
@@ -109,6 +134,9 @@ func main() {
 			installApps(opts)
 		}
 
+		lock.Release()
+
+		//todo: auto reboot
 		return
 	}
 
@@ -121,12 +149,18 @@ func initPrompt() {
 	switch sel {
 	case 1:
 		//* install core
+		lock := bash.SleepLock()
+
 		opts := newConfig()
 		installConfig(opts)
 		installCore(opts)
+
+		lock.Release()
 		initPrompt()
 	case 2:
 		//* install apps
+		lock := bash.SleepLock()
+
 		if SSHClient {
 			fmt.Println("App installation is not supported over SSH connections.")
 			initPrompt()
@@ -136,16 +170,32 @@ func initPrompt() {
 		opts := newConfig()
 		installAppsConfig(opts)
 		installApps(opts)
+
+		lock.Release()
 		initPrompt()
 	case 3:
+		//* install theme
+		lock := bash.SleepLock()
+
 		//todo: install theme (also detect desktop environment for different themes)
+
 		fmt.Println("Not yet implemented!")
+
+		lock.Release()
 		initPrompt()
 	case 4:
+		//* update linux kernel
+		lock := bash.SleepLock()
+
 		//todo: update linux kernel
+
 		fmt.Println("Not yet implemented!")
+
+		lock.Release()
 		initPrompt()
 	case 5:
+		lock := bash.SleepLock()
+
 		//todo: automatically run all install methods and kernel updates
 		// may also include system reboot
 		// also remember to include getting all config options before running anything
@@ -162,6 +212,10 @@ func initPrompt() {
 		if !SSHClient {
 			installApps(opts)
 		}
+
+		lock.Release()
+
+		//todo: prompt for reboot
 	default:
 		fmt.Println("Exiting...")
 	}

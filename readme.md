@@ -28,5 +28,5 @@
 ```shell
 git clone github.com/tkdeng/SpecialModifications
 cd SpecialModifications
-sudo nohup systemd-inhibit ./SpecialModifications
+sudo systemd-inhibit ./SpecialModifications
 ```
