@@ -25,6 +25,8 @@ var cliArgs = goutil.MapArgs()
 var supportedPM = []string{"apt", "dnf"}
 
 func main() {
+	//todo: test if systemd-inhibit works with bash.SleepLock() method
+
 	fmt.Println("Special Modifacations by TKD Engineer")
 
 	fmt.Println(string(falconTXT))

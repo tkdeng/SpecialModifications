@@ -395,33 +395,24 @@ func installCore(opts *config) {
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil, true)
 	} else if PM == "apt" {
 		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
-		installPKG(`bleachbit`, `pwgen`, `debconf-utils`, `apparmor-utils`)
 
-		//todo: fix gui prompt for unattended-upgrades
-		// maybe nogui only works for individual packages (or maybe only for apt and not nala)
-
-		// installPKG("rkhunter")
-		// installPKG("unattended-upgrades")
+		// installPKG(`bleachbit`, `pwgen`, `debconf-utils`, `apparmor-utils`)
+		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
 		bash.Run(append([]string{`apt`, `-y`, `install`}, "rkhunter"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+		// -o Dpkg::Options::="--force-confdef"
+		// bash.Run(append([]string{`apt`, `-y`, `install`}, "rkhunter"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+
+		//todo: fix gui prompt for unattended-upgrades
+		// -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef"
 		bash.Run(append([]string{`apt`, `-y`, `install`}, "unattended-upgrades"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 
-		//todo: test if using apt instead of nala changes rkhunter gui issues
+		// bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
+		// bash.RunRaw(`debconf-get-selections | grep unattended-upgrades > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
 
-		//todo: check issue with bleachbit or something else causing gui os restart request for updates
-
-		//todo: fix rkhunter trying to get mail setup
-		// seemed to freeze up at:
-		//   the file python3.dll was found in c:\ or c:\dlls, which indicates a possible attempt at DLL search-order hijacking
-		//
-		// this gets repeated a lot:
-		//   /usr/share/bleachbit/bleachbit/windows.py:157: SyntaxWarning: invalid escape sequence
-		//
-		// manually hitting ctrl+c or enter was necessary to continue process:
-		//   WEB_CMD configuration option: Relative pathname: "/bin/false"
-
-		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
-		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil, true)
+		bash.RunRaw(`echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | sudo debconf-set-selections`, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+		// bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+		bash.Run([]string{`dpkg-reconfigure`, `--frontend=noninteractive`, `unattended-upgrades`}, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 	}
 	core.progressBar.Step()
 
