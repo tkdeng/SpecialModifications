@@ -405,7 +405,7 @@ func installCore(opts *config) {
 
 		//todo: fix gui prompt for unattended-upgrades
 		// -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef"
-		bash.Run(append([]string{`apt`, `-y`, `install`}, "unattended-upgrades"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
+		// bash.Run(append([]string{`apt`, `-y`, `install`}, "unattended-upgrades"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 
 		// bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
 		// bash.RunRaw(`debconf-get-selections | grep unattended-upgrades > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
