@@ -440,10 +440,10 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Installing Common Packages")
 
 	if PM == "dnf" {
-		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
+		installPKG(`nano`, `micro`, `neofetch`, `tmux`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
 		bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil, true)
 	} else if PM == "apt" {
-		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfs-3g`, `exfatprogs`, `udftools`, `p7zip`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
+		installPKG(`nano`, `micro`, `neofetch`, `tmux`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfs-3g`, `exfatprogs`, `udftools`, `p7zip`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
 	}
 	bash.Run([]string{`systemctl`, `enable`, `fstrim.timer`, `--now`}, "", nil, true)
 	bash.Run([]string{`systemctl`, `enable`, `systemd-oomd.service`, `--now`}, "", nil, true)
