@@ -98,14 +98,14 @@ func installCore(opts *config) {
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `ufw`}, "", nil, true)
 
 		if !SSHClient {
-			bash.RunRaw(`for i in $(ufw status | wc -l); do ufw --force delete 1; done`, "", nil)
+			bash.RunRaw(`for i in $(ufw status | wc -l); do ufw --force delete 1; done`, "", nil, true)
 		}
 
-		bash.Run([]string{`ufw`, `default`, `deny`, `incoming`}, "", nil)
-		bash.Run([]string{`ufw`, `default`, `allow`, `outgoing`}, "", nil)
-		bash.Run([]string{`ufw`, `enable`}, "", nil)
+		bash.Run([]string{`ufw`, `default`, `deny`, `incoming`}, "", nil, true)
+		bash.Run([]string{`ufw`, `default`, `allow`, `outgoing`}, "", nil, true)
+		bash.Run([]string{`ufw`, `enable`}, "", nil, true)
 
-		bash.Run([]string{`systemctl`, `disable`, `--now`, `firewalld`}, "", nil)
+		bash.Run([]string{`systemctl`, `disable`, `--now`, `firewalld`}, "", nil, true)
 		core.progressBar.Step()
 	}
 
@@ -115,7 +115,7 @@ func installCore(opts *config) {
 	// fix moved systemd/resolved.conf file
 	if _, err := os.Stat("/etc/systemd/resolved.conf"); err != nil {
 		if _, err := os.Stat("/usr/lib/systemd/resolved.conf"); err == nil {
-			bash.Run([]string{`ln`, `-s`, `/usr/lib/systemd/resolved.conf`, `/etc/systemd/resolved.conf`}, "", nil)
+			bash.Run([]string{`ln`, `-s`, `/usr/lib/systemd/resolved.conf`, `/etc/systemd/resolved.conf`}, "", nil, true)
 		}
 	}
 
@@ -144,24 +144,24 @@ func installCore(opts *config) {
 		file.Close()
 	}
 
-	bash.Run([]string{`systemctl`, `restart`, `systemd-resolved`}, "", nil)
-	bash.Run([]string{`resolvectl`, `flush-caches`}, "", nil)
+	bash.Run([]string{`systemctl`, `restart`, `systemd-resolved`}, "", nil, true)
+	bash.Run([]string{`resolvectl`, `flush-caches`}, "", nil, true)
 	core.progressBar.Step()
 
 	core.progressBar.Msg("Testing DNS")
-	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=.*$/DNSSEC=allow-downgrade/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil)
+	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=.*$/DNSSEC=allow-downgrade/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil, true)
 	core.progressBar.Step()
 
-	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=/#DNSSEC=/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil)
+	bash.RunRaw(`if [ "$(timeout 10 ping -c1 google.com 2>/dev/null)" = "" ]; then sed -r -i 's/^DNSSEC=/#DNSSEC=/m' /etc/systemd/resolved.conf; systemctl restart systemd-resolved; resolvectl flush-caches; fi`, "", nil, true)
 	core.progressBar.Step()
 
 	//* disable ssh for desktop
 	if !SSHClient && opts.bool("disableSSH") {
-		bash.Run([]string{`systemctl`, `disable`, `sshd`, `--now`}, "", nil)
-		bash.RunRaw(`if test -f "/etc/ssh/sshd_config"; then sed -r -i 's/^PermitRootLogin (.*)$/PermitRootLogin no/m' "/etc/ssh/sshd_config"; sed -r -i 's/^PasswordAuthentication (.*)$/PasswordAuthentication no/m' "/etc/ssh/sshd_config"; fi`, "", nil)
+		bash.Run([]string{`systemctl`, `disable`, `sshd`, `--now`}, "", nil, true)
+		bash.RunRaw(`if test -f "/etc/ssh/sshd_config"; then sed -r -i 's/^PermitRootLogin (.*)$/PermitRootLogin no/m' "/etc/ssh/sshd_config"; sed -r -i 's/^PasswordAuthentication (.*)$/PasswordAuthentication no/m' "/etc/ssh/sshd_config"; fi`, "", nil, true)
 
 		//* set password quality rules
-		bash.RunRaw(`if test -f "/etc/security/pwquality.conf"; then sed -r -i 's/^# difoc = (.*)$/  difoc = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minlen = (.*)$/  minlen = 4/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dcredit = (.*)$/  dcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ucredit = (.*)$/  ucredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# lcredit = (.*)$/  lcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ocredit = (.*)$/  ocredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minclass = (.*)$/  minclass = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# maxrepeat = (.*)$/  maxrepeat = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# gecoscheck = (.*)$/  gecoscheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dictcheck = (.*)$/  dictcheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usercheck = (.*)$/  usercheck = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usersubstr = (.*)$/  usersubstr = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# enforcing = (.*)$/  enforcing = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# retry = (.*)$/  retry = 3/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# local_users_only$/  local_users_only/m' "/etc/security/pwquality.conf"; fi`, "", nil)
+		bash.RunRaw(`if test -f "/etc/security/pwquality.conf"; then sed -r -i 's/^# difoc = (.*)$/  difoc = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minlen = (.*)$/  minlen = 4/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dcredit = (.*)$/  dcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ucredit = (.*)$/  ucredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# lcredit = (.*)$/  lcredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# ocredit = (.*)$/  ocredit = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# minclass = (.*)$/  minclass = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# maxrepeat = (.*)$/  maxrepeat = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# gecoscheck = (.*)$/  gecoscheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# dictcheck = (.*)$/  dictcheck = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usercheck = (.*)$/  usercheck = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# usersubstr = (.*)$/  usersubstr = 0/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# enforcing = (.*)$/  enforcing = 1/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# retry = (.*)$/  retry = 3/m' "/etc/security/pwquality.conf"; sed -r -i 's/^# local_users_only$/  local_users_only/m' "/etc/security/pwquality.conf"; fi`, "", nil, true)
 
 		core.progressBar.Step()
 	}
@@ -170,9 +170,9 @@ func installCore(opts *config) {
 	if PM == "apt" && !hasNalaPM {
 		core.progressBar.Msg("Installing Nala")
 		installPKG("nala")
-		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
-		if out, err := bash.Run([]string{`which`, `nala`}, "", nil); err == nil && len(out) != 0 {
-			bash.Run([]string{`nala`, `update`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
+		if out, err := bash.Run([]string{`which`, `nala`}, "", nil, true); err == nil && len(out) != 0 {
+			bash.Run([]string{`nala`, `update`}, "", nil, true)
 			hasNalaPM = true
 		}
 		core.progressBar.Step()
@@ -181,49 +181,49 @@ func installCore(opts *config) {
 	if PM == "dnf" {
 		//* install rpm repos
 		core.progressBar.Msg("Installing RPM repos")
-		bash.RunRaw(`dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm`, "", nil)
-		bash.RunRaw(`dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm`, "", nil)
+		bash.RunRaw(`dnf -y install https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm`, "", nil, true)
+		bash.RunRaw(`dnf -y install https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm`, "", nil, true)
 		installPKG(`fedora-workstation-repositories`)
-		bash.Run([]string{`fedora-third-party`, `enable`}, "", nil)
-		bash.Run([]string{`fedora-third-party`, `refresh`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `core`}, "", nil)
+		bash.Run([]string{`fedora-third-party`, `enable`}, "", nil, true)
+		bash.Run([]string{`fedora-third-party`, `refresh`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `core`}, "", nil, true)
 		core.progressBar.Step()
 
-		bash.Run([]string{`dnf`, `clean`, `all`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `autoremove`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `distro-sync`}, "", nil)
+		bash.Run([]string{`dnf`, `clean`, `all`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `autoremove`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `distro-sync`}, "", nil, true)
 		core.progressBar.Step()
 
 		//* install flatpak
 		core.progressBar.Msg("Installing flatpak")
 		installPKG(`flatpak`)
-		bash.Run([]string{`flatpak`, `remote-add`, `--if-not-exists`, `flathub`, `https://flathub.org/repo/flathub.flatpakrepo`}, "", nil)
-		// bash.Run([]string{`flatpak`, `update`, `-y`, `--noninteractive`}, "", nil)
-		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.tchx84.Flatseal`}, "", nil)
+		bash.Run([]string{`flatpak`, `remote-add`, `--if-not-exists`, `flathub`, `https://flathub.org/repo/flathub.flatpakrepo`}, "", nil, true)
+		// bash.Run([]string{`flatpak`, `update`, `-y`, `--noninteractive`}, "", nil, true)
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.tchx84.Flatseal`}, "", nil, true)
 		core.progressBar.Step()
 
 		//* install snap
 		core.progressBar.Msg("Installing snap")
 		installPKG(`snap`)
-		bash.Run([]string{`ln`, `-s`, `/var/lib/snapd/snap /snap`}, "", nil)
-		bash.Run([]string{`systemctl`, `enable`, `snapd`, `--now`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`}, "", nil) // fix: not seeded yet will trigger and fix itself for the next command
-		bash.Run([]string{`snap`, `install`, `core`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`, `core`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`}, "", nil)
+		bash.Run([]string{`ln`, `-s`, `/var/lib/snapd/snap /snap`}, "", nil, true)
+		bash.Run([]string{`systemctl`, `enable`, `snapd`, `--now`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`}, "", nil, true) // fix: not seeded yet will trigger and fix itself for the next command
+		bash.Run([]string{`snap`, `install`, `core`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`, `core`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`}, "", nil, true)
 		core.progressBar.Step()
 
-		bash.Run([]string{`dnf`, `clean`, `all`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `autoremove`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `distro-sync`}, "", nil)
+		bash.Run([]string{`dnf`, `clean`, `all`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `autoremove`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `distro-sync`}, "", nil, true)
 		core.progressBar.Step()
 
 		//* install multimedia
 		core.progressBar.Msg("Updating multimedia codecs")
-		bash.Run([]string{`dnf`, `-y`, `--skip-broken`, `install`, `@multimedia`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `multimedia`, `--setop=install_weak_deps=False`, `--exclude=PackageKit-gstreamer-plugin`, `--skip-broken`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `sound-and-video`}, "", nil)
-		bash.Run([]string{`dnf`, `-y`, `--allowerasing`, `install`, `ffmpeg`}, "", nil)
+		bash.Run([]string{`dnf`, `-y`, `--skip-broken`, `install`, `@multimedia`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `multimedia`, `--setop=install_weak_deps=False`, `--exclude=PackageKit-gstreamer-plugin`, `--skip-broken`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `groupupdate`, `sound-and-video`}, "", nil, true)
+		bash.Run([]string{`dnf`, `-y`, `--allowerasing`, `install`, `ffmpeg`}, "", nil, true)
 		core.progressBar.Step()
 
 		installPKG(`libwebp`, `libwebp-devel`)
@@ -233,27 +233,27 @@ func installCore(opts *config) {
 		//* install flatpak
 		core.progressBar.Msg("Installing flatpak")
 		installPKG(`flatpak`)
-		bash.Run([]string{`flatpak`, `remote-add`, `--if-not-exists`, `flathub`, `https://flathub.org/repo/flathub.flatpakrepo`}, "", nil)
-		// bash.Run([]string{`flatpak`, `update`, `-y`, `--noninteractive`}, "", nil)
-		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.tchx84.Flatseal`}, "", nil)
+		bash.Run([]string{`flatpak`, `remote-add`, `--if-not-exists`, `flathub`, `https://flathub.org/repo/flathub.flatpakrepo`}, "", nil, true)
+		// bash.Run([]string{`flatpak`, `update`, `-y`, `--noninteractive`}, "", nil, true)
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.tchx84.Flatseal`}, "", nil, true)
 		core.progressBar.Step()
 
 		//* install snap
 		core.progressBar.Msg("Installing snap")
 		installPKG(`snap`)
-		bash.Run([]string{`ln`, `-s`, `/var/lib/snapd/snap /snap`}, "", nil)
-		bash.Run([]string{`systemctl`, `enable`, `snapd`, `--now`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`}, "", nil) // fix: not seeded yet will trigger and fix itself for the next command
-		bash.Run([]string{`snap`, `install`, `core`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`, `core`}, "", nil)
-		bash.Run([]string{`snap`, `refresh`}, "", nil)
+		bash.Run([]string{`ln`, `-s`, `/var/lib/snapd/snap /snap`}, "", nil, true)
+		bash.Run([]string{`systemctl`, `enable`, `snapd`, `--now`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`}, "", nil, true) // fix: not seeded yet will trigger and fix itself for the next command
+		bash.Run([]string{`snap`, `install`, `core`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`, `core`}, "", nil, true)
+		bash.Run([]string{`snap`, `refresh`}, "", nil, true)
 		core.progressBar.Step()
 
-		bash.Run([]string{`apt`, `-y`, `clean`}, "", nil)
-		bash.Run([]string{`apt`, `-y`, `autoremove`}, "", nil)
-		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
+		bash.Run([]string{`apt`, `-y`, `clean`}, "", nil, true)
+		bash.Run([]string{`apt`, `-y`, `autoremove`}, "", nil, true)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
 		if hasNalaPM {
-			bash.Run([]string{`nala`, `update`}, "", nil)
+			bash.Run([]string{`nala`, `update`}, "", nil, true)
 		}
 		core.progressBar.Step()
 
@@ -267,8 +267,8 @@ func installCore(opts *config) {
 
 	//* disable startups
 	core.progressBar.Msg("Disabling Time Wasting Programs")
-	bash.Run([]string{`systemctl`, `disable`, `accounts-daemon.service`}, "", nil) // is a potential securite risk
-	bash.Run([]string{`systemctl`, `disable`, `debug-shell.service`}, "", nil)     // opens a giant security hole
+	bash.Run([]string{`systemctl`, `disable`, `accounts-daemon.service`}, "", nil, true) // is a potential securite risk
+	bash.Run([]string{`systemctl`, `disable`, `debug-shell.service`}, "", nil, true)     // opens a giant security hole
 	removePKG(`dmraid`)
 	if PM == "dnf" {
 		removePKG(`device-mapper-multipath`)
@@ -306,9 +306,9 @@ func installCore(opts *config) {
 	} else if PM == "apt" {
 		installPKG(`git`, `nodejs`)
 		if hasNalaPM {
-			bash.Run([]string{`nala`, `install`, `-y`, `--no-install-recommends`, `npm`}, "", nil)
+			bash.Run([]string{`nala`, `install`, `-y`, `--no-install-recommends`, `npm`}, "", nil, true)
 		} else {
-			bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil)
+			bash.Run([]string{`apt`, `-y`, `--no-install-recommends`, `install`, `npm`}, "", nil, true)
 		}
 	}
 	core.progressBar.Step()
@@ -326,22 +326,22 @@ func installCore(opts *config) {
 	core.progressBar.Msg("Installing Docker")
 	if PM == "dnf" {
 		installPKG(`dnf-plugins-core`)
-		bash.Run([]string{`dnf`, `config-manager`, `--add-repo`, `https://download.docker.com/linux/fedora/docker-ce.repo`}, "", nil)
+		bash.Run([]string{`dnf`, `config-manager`, `--add-repo`, `https://download.docker.com/linux/fedora/docker-ce.repo`}, "", nil, true)
 		installPKG(`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`)
 		installPKG(`docker`)
-		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil, true)
 	} else if PM == "apt" {
 		installPKG(`ca-certificates`, `curl`)
-		bash.Run([]string{`install`, `-m`, `0755`, `-d`, `/etc/apt/keyrings`}, "", nil)
-		bash.Run([]string{`curl`, `-fsSL`, `https://download.docker.com/linux/ubuntu/gpg`, `-o`, `/etc/apt/keyrings/docker.asc`}, "", nil)
-		bash.Run([]string{`chmod`, `a+r`, `/etc/apt/keyrings/docker.asc`}, "", nil)
-		bash.Run([]string{`echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`}, "", nil)
-		bash.Run([]string{`apt`, `-y`, `update`}, "", nil)
+		bash.Run([]string{`install`, `-m`, `0755`, `-d`, `/etc/apt/keyrings`}, "", nil, true)
+		bash.Run([]string{`curl`, `-fsSL`, `https://download.docker.com/linux/ubuntu/gpg`, `-o`, `/etc/apt/keyrings/docker.asc`}, "", nil, true)
+		bash.Run([]string{`chmod`, `a+r`, `/etc/apt/keyrings/docker.asc`}, "", nil, true)
+		bash.Run([]string{`echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null`}, "", nil, true)
+		bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
 		if hasNalaPM {
-			bash.Run([]string{`nala`, `update`}, "", nil)
+			bash.Run([]string{`nala`, `update`}, "", nil, true)
 		}
 		installPKG(`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`)
-		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `docker`, `--now`}, "", nil, true)
 	}
 	core.progressBar.Step()
 
@@ -354,8 +354,8 @@ func installCore(opts *config) {
 	//* install fail2ban
 	core.progressBar.Msg("Installing Fail2Ban")
 	installPKG(`fail2ban`)
-	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil)
+	bash.RunRaw(`if ! [ -f "/etc/fail2ban/jail.local" ]; then touch "/etc/fail2ban/jail.local"; echo '[DEFAULT]' | tee -a "/etc/fail2ban/jail.local"; echo 'ignoreip = 127.0.0.1/8 ::1' | tee -a "/etc/fail2ban/jail.local"; echo 'bantime = 3600' | tee -a "/etc/fail2ban/jail.local"; echo 'findtime = 600' | tee -a "/etc/fail2ban/jail.local"; echo 'maxretry = 5' | tee -a "/etc/fail2ban/jail.local"; echo '' | tee -a "/etc/fail2ban/jail.local"; echo '[sshd]' | tee -a "/etc/fail2ban/jail.local"; echo 'enabled = true' | tee -a "/etc/fail2ban/jail.local"; fi`, "", nil, true)
+	bash.Run([]string{`systemctl`, `enable`, `--now`, `fail2ban`}, "", nil, true)
 	core.progressBar.Step()
 
 	//* install clamav
@@ -365,21 +365,21 @@ func installCore(opts *config) {
 	} else if PM == "apt" {
 		installPKG(`clamav`, `clamav-daemon`, `clamav-update`, `cronie`)
 	}
-	bash.Run([]string{`systemctl`, `stop`, `clamav-freshclam`}, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `--now`, `clamav-freshclam`}, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
+	bash.Run([]string{`systemctl`, `stop`, `clamav-freshclam`}, "", nil, true)
+	bash.Run([]string{`freshclam`}, "", nil, true)
+	bash.Run([]string{`systemctl`, `enable`, `--now`, `clamav-freshclam`}, "", nil, true)
+	bash.Run([]string{`freshclam`}, "", nil, true)
 	core.progressBar.Step()
 
 	//* fix clamav permissions
 	os.MkdirAll("/VirusScan/quarantine", 0664)
-	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil)
-	bash.Run([]string{`freshclam`}, "", nil)
+	bash.RunRaw(`if grep -R "^ScanOnAccess " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^ScanOnAccess (.*)$/ScanOnAccess yes/m' /etc/clamd.d/scan.conf; else echo 'ScanOnAccess yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^OnAccessMountPath " "/etc/clamd.d/scan.conf"; then sed -r -i 's#^OnAccessMountPath (.*)$#OnAccessMountPath /#m' /etc/clamd.d/scan.conf; else echo 'OnAccessMountPath /' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^OnAccessPrevention " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessPrevention (.*)$/OnAccessPrevention no/m' /etc/clamd.d/scan.conf; else echo 'OnAccessPrevention no' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^OnAccessExtraScanning " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExtraScanning (.*)$/OnAccessExtraScanning yes/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExtraScanning yes' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^OnAccessExcludeUID " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^OnAccessExcludeUID (.*)$/OnAccessExcludeUID 0/m' /etc/clamd.d/scan.conf; else echo 'OnAccessExcludeUID 0' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.RunRaw(`if grep -R "^User " "/etc/clamd.d/scan.conf"; then sed -r -i 's/^User (.*)$/User root/m' /etc/clamd.d/scan.conf; else echo 'User root' | tee -a /etc/clamd.d/scan.conf; fi`, "", nil, true)
+	bash.Run([]string{`freshclam`}, "", nil, true)
 	core.progressBar.Step()
 
 	//* install other security tools
@@ -387,8 +387,8 @@ func installCore(opts *config) {
 	if PM == "dnf" {
 		installPKG(`rkhunter`, `bleachbit`, `pwgen`, `dnf-automatic`, `selinux-policy-devel`)
 
-		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil)
-		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil)
+		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil, true)
+		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil, true)
 	} else if PM == "apt" {
 		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
@@ -407,8 +407,8 @@ func installCore(opts *config) {
 		// manually hitting ctrl+c or enter was necessary to continue process:
 		//   WEB_CMD configuration option: Relative pathname: "/bin/false"
 
-		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil)
-		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil)
+		bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
+		bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", nil, true)
 	}
 	core.progressBar.Step()
 
@@ -417,7 +417,7 @@ func installCore(opts *config) {
 	bash.Run([]string{`rkhunter`, `--propupd`}, "", nil, true)
 
 	//* schedule scans
-	bash.RunRaw(`if ! [[ $(crontab -l) == *"# clamav-scan"* ]] ; then crontab -l | { cat; echo '0 2 * * * nice -n 15 clamscan && clamscan -r --bell --move="/VirusScan/quarantine" --exclude-dir="/VirusScan/quarantine" --exclude-dir="/home/$USER/.clamtk/viruses" --exclude-dir="smb4k" --exclude-dir="/run/user/$USER/gvfs" --exclude-dir="/home/$USER/.gvfs" --exclude-dir=".thunderbird" --exclude-dir=".mozilla-thunderbird" --exclude-dir=".evolution" --exclude-dir="Mail" --exclude-dir="kmail" --exclude-dir="^/sys" / # clamav-scan'; } | crontab -; fi`, "", nil)
+	bash.RunRaw(`if ! [[ $(crontab -l) == *"# clamav-scan"* ]] ; then crontab -l | { cat; echo '0 2 * * * nice -n 15 clamscan && clamscan -r --bell --move="/VirusScan/quarantine" --exclude-dir="/VirusScan/quarantine" --exclude-dir="/home/$USER/.clamtk/viruses" --exclude-dir="smb4k" --exclude-dir="/run/user/$USER/gvfs" --exclude-dir="/home/$USER/.gvfs" --exclude-dir=".thunderbird" --exclude-dir=".mozilla-thunderbird" --exclude-dir=".evolution" --exclude-dir="Mail" --exclude-dir="kmail" --exclude-dir="^/sys" / # clamav-scan'; } | crontab -; fi`, "", nil, true)
 	core.progressBar.Step()
 
 	//todo: add scheduled scans to virus scanning app
@@ -428,12 +428,12 @@ func installCore(opts *config) {
 
 	if PM == "dnf" {
 		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfsprogs`, `exfatprogs`, `udftools`, `p7zip`, `p7zip-plugins`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
-		bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil)
+		bash.Run([]string{`systemctl`, `enable`, `sshd.socket`, `--now`}, "", nil, true)
 	} else if PM == "apt" {
 		installPKG(`nano`, `micro`, `neofetch`, `qemu-guest-agent`, `tuned`, `btrfs-progs`, `lvm2`, `xfsprogs`, `ntfs-3g`, `ntfs-3g`, `exfatprogs`, `udftools`, `p7zip`, `hplip`, `hplip-gui`, `inotify-tools`, `guvcview`)
 	}
-	bash.Run([]string{`systemctl`, `enable`, `fstrim.timer`, `--now`}, "", nil)
-	bash.Run([]string{`systemctl`, `enable`, `systemd-oomd.service`, `--now`}, "", nil)
+	bash.Run([]string{`systemctl`, `enable`, `fstrim.timer`, `--now`}, "", nil, true)
+	bash.Run([]string{`systemctl`, `enable`, `systemd-oomd.service`, `--now`}, "", nil, true)
 	core.progressBar.Step()
 
 	//* install fonts
