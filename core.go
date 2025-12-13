@@ -279,12 +279,20 @@ func installCore(opts *config) {
 
 	//* install python
 	core.progressBar.Msg("Installing Python")
-	installPKG(`python`, `python3`, `python-pip`, `python3-pip`)
+	if PM == "apt" {
+		installPKG(`python3`, `python3-pip`)
+	} else {
+		installPKG(`python`, `python3`, `python-pip`, `python3-pip`)
+	}
 	core.progressBar.Step()
 
 	//* install c
 	core.progressBar.Msg("Installing C")
-	installPKG(`gcc-c++`, `make`, `gcc`)
+	if PM == "apt" {
+		installPKG(`g++`, `make`, `gcc`)
+	} else {
+		installPKG(`gcc-c++`, `make`, `gcc`)
+	}
 	core.progressBar.Step()
 
 	//* install java
