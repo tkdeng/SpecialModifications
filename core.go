@@ -49,6 +49,7 @@ func installConfig(opts *config) {
 		opts.setBool("disableSSH", false)
 	}
 
+	fmt.Println("")
 	time.Sleep(1 * time.Second)
 }
 
@@ -394,24 +395,11 @@ func installCore(opts *config) {
 		bash.RunRaw(`sed -r -i 's/^apply_updates(\s*)=(\s*)(.*)$/apply_updates\1=\2yes/m' "/etc/dnf/automatic.conf"`, "", nil, true)
 		bash.Run([]string{`systemctl`, `enable`, `--now`, `dnf-automatic.timer`}, "", nil, true)
 	} else if PM == "apt" {
-		// installPKG(`rkhunter`, `bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
-
-		// installPKG(`bleachbit`, `pwgen`, `debconf-utils`, `apparmor-utils`)
 		installPKG(`bleachbit`, `pwgen`, `unattended-upgrades`, `debconf-utils`, `apparmor-utils`)
 
 		bash.Run(append([]string{`apt`, `-y`, `install`}, "rkhunter"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
-		// -o Dpkg::Options::="--force-confdef"
-		// bash.Run(append([]string{`apt`, `-y`, `install`}, "rkhunter"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
-
-		//todo: fix gui prompt for unattended-upgrades
-		// -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef"
-		// bash.Run(append([]string{`apt`, `-y`, `install`}, "unattended-upgrades"), "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
-
-		// bash.RunRaw(`debconf-get-selections | grep <package-name> > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
-		// bash.RunRaw(`debconf-get-selections | grep unattended-upgrades > temp-preseed.conf; sed -r -i 's/false$/true/m' temp-preseed.conf; debconf-set-selections temp-preseed.conf; rm -f temp-preseed.conf`, "", nil, true)
 
 		bash.RunRaw(`echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | sudo debconf-set-selections`, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
-		// bash.Run([]string{`dpkg-reconfigure`, `--priority=low`, `-u`, `unattended-upgrades`}, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 		bash.Run([]string{`dpkg-reconfigure`, `--frontend=noninteractive`, `unattended-upgrades`}, "", []string{`DEBIAN_FRONTEND=noninteractive`}, true)
 	}
 	core.progressBar.Step()

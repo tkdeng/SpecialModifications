@@ -25,8 +25,6 @@ var cliArgs = goutil.MapArgs()
 var supportedPM = []string{"apt", "dnf"}
 
 func main() {
-	//todo: test if systemd-inhibit works with bash.SleepLock() method
-
 	fmt.Println("Special Modifacations by TKD Engineer")
 
 	fmt.Println(string(falconTXT))
@@ -103,7 +101,7 @@ func main() {
 		lock := bash.SleepLock()
 
 		fmt.Println("Not yet implemented")
-		
+
 		lock.Release()
 		return
 	} else if cliArgs["update-kernel"] == "true" || cliArgs["kernel"] == "true" || cliArgs["k"] == "true" {
