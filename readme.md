@@ -26,7 +26,22 @@
 ## Installation
 
 ```shell
-git clone github.com/tkdeng/SpecialModifications
+git clone https://github.com/tkdeng/SpecialModifications.git
 cd SpecialModifications
 sudo ./SpecialModifications
+```
+
+## Git
+
+### Fedora
+
+```shell
+sudo dnf install git
+```
+
+### Ubuntu
+
+```shell
+sudo apt update
+sudo apt install git
 ```
