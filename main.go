@@ -106,9 +106,9 @@ func main() {
 
 		//todo: setup theme install
 		fmt.Println("Not yet implemented")
-		opts := newConfig()
+		/* opts := newConfig()
 		installThemeConfig(opts)
-		installTheme(opts)
+		installTheme(opts) */
 
 		lock.Release()
 		return
