@@ -5,6 +5,7 @@ import (
 	"time"
 
 	bash "github.com/tkdeng/gobash"
+	"github.com/tkdeng/goutil"
 )
 
 type themeInstaller struct {
@@ -24,13 +25,16 @@ func installTheme(opts *config) {
 	defer progressBar.Stop()
 
 	theme := &themeInstaller{progressBar: progressBar, opts: opts}
-	_ = theme
 
 	progressBar.SetSize(1)
 
 	/* if opts.bool("desktop-apps") {
 		progressBar.AddSize(5)
 	} */
+
+	if goutil.Contains(DesktopENV, "gnome") {
+		progressBar.AddSize(1)
+	}
 
 	fmt.Println("Installing Special Modifications...")
 
@@ -39,13 +43,19 @@ func installTheme(opts *config) {
 	update(true)
 	progressBar.Step()
 
-	/* if PM == "dnf" {
-		progressBar.Msg("Installing Essential Apps")
-		installPKG("gparted", "chromium", "firefox")
-		progressBar.Step()
-	}else if PM == "apt" {
-		progressBar.Msg("Installing Essential Apps")
-		installPKG("gparted", "chromium-browser", "firefox")
-		progressBar.Step()
-	} */
+	//* install desktop environment specific theme
+	if goutil.Contains(DesktopENV, "gnome") {
+		theme.gnome()
+	}
+
+	progressBar.Step()
+
+	//* update
+	progressBar.Msg("Updating")
+	update(true)
+	progressBar.Step()
+}
+
+func (apps *themeInstaller) gnome() {
+	//* install gnome theme
 }

@@ -104,7 +104,11 @@ func main() {
 
 		lock := bash.SleepLock()
 
+		//todo: setup theme install
 		fmt.Println("Not yet implemented")
+		opts := newConfig()
+		installThemeConfig(opts)
+		installTheme(opts)
 
 		lock.Release()
 		return

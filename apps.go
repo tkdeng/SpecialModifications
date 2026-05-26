@@ -33,7 +33,7 @@ func installApps(opts *config) {
 
 	apps := &appsInstaller{progressBar: progressBar, opts: opts}
 
-	progressBar.SetSize(3)
+	progressBar.SetSize(4)
 
 	if opts.bool("desktop-apps") {
 		progressBar.AddSize(5)
