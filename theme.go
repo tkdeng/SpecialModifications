@@ -26,6 +26,11 @@ func installThemeConfig(opts *config) {
 }
 
 func installTheme(opts *config) {
+	//todo: may skip theme setup on zorin
+	// zorinos already has a good theme setup by default
+	// or may just skip some parts
+	// may also need to test for regular ubuntu distro
+
 	progressBar := bash.NewProgressBar("Installing")
 	defer progressBar.Stop()
 
