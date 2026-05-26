@@ -18,7 +18,10 @@ type appsInstaller struct {
 func installAppsConfig(opts *config) {
 	opts.addBool("google", "Would you like to install Google Chrome?", true)
 	opts.addBool("vscode", "Would you like to install VSCode?", true)
-	opts.addBool("steam", "Would you like to install Steam?", true)
+	opts.addBool("desktop-apps", "Would you like to install Desktop Apps?", true)
+	if opts.bool("desktop-apps") {
+		opts.addBool("steam", "Would you like to install Steam?", true)
+	}
 
 	fmt.Println("")
 	time.Sleep(1 * time.Second)
@@ -30,7 +33,11 @@ func installApps(opts *config) {
 
 	apps := &appsInstaller{progressBar: progressBar, opts: opts}
 
-	progressBar.SetSize(7)
+	progressBar.SetSize(3)
+
+	if opts.bool("desktop-apps") {
+		progressBar.AddSize(5)
+	}
 
 	if PM == "dnf" {
 		progressBar.AddSize(1)
@@ -61,19 +68,32 @@ func installApps(opts *config) {
 	update(true)
 	progressBar.Step()
 
-	//* install apps
+	//* install Essential apps
 	if PM == "dnf" {
-		progressBar.Msg("Installing Apps")
-		installPKG("gparted", "chromium", "firefox", "blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
+		progressBar.Msg("Installing Essential Apps")
+		installPKG("gparted", "chromium", "firefox")
 		progressBar.Step()
-	} else if PM == "apt" {
-		progressBar.Msg("Installing Apps")
-
-		bash.Run([]string{`add-apt-repository`, `-y`, `ppa:kdenlive/kdenlive-stable`}, "", nil)
-		bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
-
-		installPKG("gparted", "chromium-browser", "firefox", "blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
+	}else if PM == "apt" {
+		progressBar.Msg("Installing Essential Apps")
+		installPKG("gparted", "chromium-browser", "firefox")
 		progressBar.Step()
+	}
+
+	//* install apps
+	if opts.bool("desktop-apps") {
+		if PM == "dnf" {
+			progressBar.Msg("Installing Apps")
+			installPKG("blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
+			progressBar.Step()
+		} else if PM == "apt" {
+			progressBar.Msg("Installing Apps")
+	
+			bash.Run([]string{`add-apt-repository`, `-y`, `ppa:kdenlive/kdenlive-stable`}, "", nil)
+			bash.Run([]string{`apt`, `-y`, `update`}, "", nil, true)
+	
+			installPKG("blender", "gimp", "gnome-boxes", "audacity", "kdenlive")
+			progressBar.Step()
+		}
 	}
 
 	//* install selected apps
@@ -150,28 +170,31 @@ func installApps(opts *config) {
 		progressBar.Step()
 	}
 
-	//* install flatpak apps
-	if !hasPKG("liveusb-creator") {
-		progressBar.Msg("Installing Media Writer")
-		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.fedoraproject.MediaWriter`}, "", nil, true)
+	
+	if opts.bool("desktop-apps") {
+		//* install flatpak apps
+		if !hasPKG("liveusb-creator") {
+			progressBar.Msg("Installing Media Writer")
+			bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.fedoraproject.MediaWriter`}, "", nil, true)
+		}
+		progressBar.Step()
+
+		progressBar.Msg("Installing Video Downloader")
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.unrud.VideoDownloader`}, "", nil, true)
+		progressBar.Step()
+	
+		/* progressBar.Msg("Installing Kdenlive")
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.kdenlive.kdenlive`}, "", nil, true)
+		progressBar.Step() */
+	
+		progressBar.Msg("Installing OBS Studio")
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.obsproject.Studio`}, "", nil, true)
+		progressBar.Step()
+	
+		progressBar.Msg("Installing Spotify")
+		bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.spotify.Client`}, "", nil, true)
+		progressBar.Step()
 	}
-	progressBar.Step()
-
-	progressBar.Msg("Installing Video Downloader")
-	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.github.unrud.VideoDownloader`}, "", nil, true)
-	progressBar.Step()
-
-	/* progressBar.Msg("Installing Kdenlive")
-	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.kdenlive.kdenlive`}, "", nil, true)
-	progressBar.Step() */
-
-	progressBar.Msg("Installing OBS Studio")
-	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.obsproject.Studio`}, "", nil, true)
-	progressBar.Step()
-
-	progressBar.Msg("Installing Spotify")
-	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.spotify.Client`}, "", nil, true)
-	progressBar.Step()
 
 	//* install desktop environment specific apps
 	if goutil.Contains(DesktopENV, "gnome") {
