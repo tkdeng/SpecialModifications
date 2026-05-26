@@ -47,10 +47,10 @@ func installTheme(opts *config) {
 	//todo: setup theme install
 
 	progressBar.Msg("Installing Theme Assets")
-	extractEmbeddedTarGz("assets/themes.tar.gz", "usr/share/themes")
-	extractEmbeddedTarGz("assets/icons.tar.gz", "usr/share/icons")
-	extractEmbeddedTarGz("assets/sounds.tar.gz", "usr/share/sounds")
-	extractEmbeddedTarGz("assets/backgrounds.tar.gz", "usr/share/backgrounds")
+	extractEmbeddedTarGz("assets/themes.tar.gz", "/usr/share/themes")
+	extractEmbeddedTarGz("assets/icons.tar.gz", "/usr/share/icons")
+	extractEmbeddedTarGz("assets/sounds.tar.gz", "/usr/share/sounds")
+	extractEmbeddedTarGz("assets/backgrounds.tar.gz", "/usr/share/backgrounds")
 	progressBar.Step()
 
 	//todo: figure out ly for optional server minimal gui
@@ -77,6 +77,10 @@ func (theme *themeInstaller) gnome() {
 	bash.Run([]string{`gsettings`, `set`, `org.gnome.mutter`, `attach-modal-dialogs`, `false`}, "", nil)
 	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.wm.preferences`, `button-layout`, `appmenu:minimize,maximize,close`}, "", nil) */
 
+	if PM == "dnf" {
+		removePKG("gnome-shell-extension-background-logo")
+	}
+
 	if theme.opts.bool("texteditor-session") {
 		bash.Run([]string{`gsettings`, `set`, `org.gnome.TextEditor`, `restore-session`, `true`}, "", nil)
 	} else {
@@ -99,7 +103,14 @@ func (theme *themeInstaller) gnome() {
 
 	//* install gnome extensions
 	theme.progressBar.Msg("Installing Gnome Extensions")
-	installPKG("gnome-shell-extension-vertical-workspaces", "gnome-shell-extension-arc-menu", "gnome-shell-extension-dash-to-panel", "gnome-shell-extension-dash-to-dock")
+	// installPKG("gnome-shell-extension-vertical-workspaces", "gnome-shell-extension-arc-menu", "gnome-shell-extension-dash-to-panel", "gnome-shell-extension-dash-to-dock")
+	installPKG("gnome-shell-extension-vertical-workspaces", "gnome-shell-extension-dash-to-panel", "gnome-shell-extension-dash-to-dock")
+
+	//* install arcmenu
+	installPKG("gnome-menus")
+	bash.Run([]string{`git`, `clone`, `https://gitlab.com/arcmenu/ArcMenu.git`, `/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com`}, "", nil)
+	bash.Run([]string{`glib-compile-schemas`, `/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com/schemas/`}, "", nil)
+	bash.Run([]string{`chmod`, `-R`, `755`, `/usr/share/gnome-shell/extensions/arcmenu@arcmenu.com`}, "", nil)
 
 	//* install app icons taskbar
 	bash.Run([]string{`git`, `clone`, `https://gitlab.com/AndrewZaech/aztaskbar.git`, `/usr/share/gnome-shell/extensions/aztaskbar@aztaskbar.gitlab.com`}, "", nil)
@@ -124,11 +135,6 @@ func (theme *themeInstaller) gnome() {
 	// bash.Run([]string{`pip3`, `install`, `--upgrade`, `gnome-extentions-cli`}, "", nil)
 	bash.Run([]string{`pip3`, `install`, `--upgrade`, `gnome-extensions-cli`}, "", nil)
 	theme.progressBar.Step()
-
-	if PM == "dnf" {
-		//todo: may need to run as user
-		bash.Run([]string{`gext`, `disable`, `background-logo@fedorahosted.org`}, "", nil)
-	}
 
 	//todo: install via dnf
 	// installPKG("gnome-shell-extension-vertical-workspaces")

@@ -122,7 +122,6 @@ func installPKG(pkg ...string) {
 }
 
 func removePKG(pkg ...string) {
-	//todo: uninstall packages
 	switch PM {
 	case "apt":
 		if hasNalaPM {
