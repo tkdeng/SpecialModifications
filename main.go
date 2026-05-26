@@ -44,13 +44,17 @@ func main() {
 
 	SSHClient = !bash.If(`"$SSH_CLIENT" == "" && "$SSH_TTY" == ""`, "", nil)
 
+	if out, err := bash.RunRaw(`echo $XDG_CURRENT_DESKTOP`, "", nil); err == nil && len(out) != 0 {
+		DesktopENV = append(DesktopENV, string(bytes.ToLower(bytes.TrimSpace(out))))
+	}
+
 	if out, err := bash.RunRaw(`ls /usr/share/xsessions/*.desktop`, "", nil); err == nil && len(out) != 0 {
 		list := bytes.Split(out, []byte{'\n'})
 		reg := regex.Comp(`^.*\/([\w_\-]+)\.desktop$`)
 		for _, item := range list {
 			item = bytes.TrimSpace(item)
 			if len(item) != 0 && reg.Match(item) {
-				DesktopENV = append(DesktopENV, string(reg.Rep(item, []byte("$1"))))
+				DesktopENV = append(DesktopENV, string(bytes.ToLower(reg.Rep(item, []byte("$1")))))
 			}
 		}
 	}
