@@ -142,6 +142,8 @@ func main() {
 			installTheme(opts)
 		}
 
+		//todo: allow SSHClient to optionally install minimal ly gui
+
 		lock.Release()
 
 		//todo: auto reboot
@@ -187,7 +189,9 @@ func initPrompt() {
 
 		//todo: install theme (also detect desktop environment for different themes)
 
-		fmt.Println("Not yet implemented!")
+		opts := newConfig()
+		installThemeConfig(opts)
+		installTheme(opts)
 
 		lock.Release()
 		initPrompt()
@@ -213,12 +217,14 @@ func initPrompt() {
 
 		if !SSHClient {
 			installAppsConfig(opts)
+			installThemeConfig(opts)
 		}
 
 		installCore(opts)
 
 		if !SSHClient {
 			installApps(opts)
+			installTheme(opts)
 		}
 
 		lock.Release()
