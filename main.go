@@ -104,11 +104,9 @@ func main() {
 
 		lock := bash.SleepLock()
 
-		//todo: setup theme install
-		fmt.Println("Not yet implemented")
-		/* opts := newConfig()
+		opts := newConfig()
 		installThemeConfig(opts)
-		installTheme(opts) */
+		installTheme(opts)
 
 		lock.Release()
 		return
@@ -134,12 +132,14 @@ func main() {
 
 		if !SSHClient {
 			installAppsConfig(opts)
+			installThemeConfig(opts)
 		}
 
 		installCore(opts)
 
 		if !SSHClient {
 			installApps(opts)
+			installTheme(opts)
 		}
 
 		lock.Release()

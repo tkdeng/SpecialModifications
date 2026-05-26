@@ -1,0 +1,9 @@
+[org/gnome/shell]
+enabled-extensions=[
+  'vertical-workspaces@G-dH.github.com',
+  'arcmenu@arcmenu.com',
+  'dash-to-panel@jderose9.github.com',
+  'dash-to-dock@micxgx.gmail.com',
+  'aztaskbar@aztaskbar.gitlab.com',
+  'openbar@neuromorph'
+]

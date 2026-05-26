@@ -1,6 +1,16 @@
 package main
 
-import bash "github.com/tkdeng/gobash"
+import (
+	"archive/tar"
+	"compress/gzip"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+
+	bash "github.com/tkdeng/gobash"
+)
 
 type config struct {
 	values map[string]string
@@ -142,4 +152,65 @@ func hasPKG(pkg ...string) bool {
 	}
 
 	return true
+}
+
+// extractEmbeddedTarGz handles decompressing embedded files to a target directory
+func extractEmbeddedTarGz(embeddedPath, dest string) error {
+	// 1. Open the embedded file
+	file, err := assetTheme.Open(embeddedPath)
+	if err != nil {
+		return fmt.Errorf("failed to open embedded file %s: %w", embeddedPath, err)
+	}
+	defer file.Close()
+
+	// 2. Wrap in gzip reader
+	gzr, err := gzip.NewReader(file)
+	if err != nil {
+		return fmt.Errorf("failed to create gzip reader: %w", err)
+	}
+	defer gzr.Close()
+
+	// 3. Wrap in tar reader
+	tr := tar.NewReader(gzr)
+
+	// 4. Iterate through files
+	for {
+		header, err := tr.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		// Security: Prevent directory traversal (Zip Slip)
+		target := filepath.Join(dest, header.Name)
+		if !strings.HasPrefix(target, filepath.Clean(dest)+string(os.PathSeparator)) {
+			return fmt.Errorf("illegal file path in archive: %s", header.Name)
+		}
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if err := os.MkdirAll(target, 0755); err != nil {
+				return err
+			}
+		case tar.TypeReg:
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				return err
+			}
+			
+			outFile, err := os.Create(target)
+			if err != nil {
+				return err
+			}
+			
+			// Copy content from tar reader to file
+			if _, err := io.Copy(outFile, tr); err != nil {
+				outFile.Close()
+				return err
+			}
+			outFile.Close()
+		}
+	}
+	return nil
 }
