@@ -80,3 +80,11 @@ autofg-bar=true
 font='Sans Bold 12'
 balpha=0.2
 neon=false
+
+[org/gnome/shell/extensions/gtk4-ding]
+show-drop-place=false
+show-home=false
+show-desktop-widgets=true
+
+[org/gnome/shell/extensions/clipboard-indicator]
+confirm-clear=false
