@@ -16,11 +16,11 @@ type appsInstaller struct {
 }
 
 func installAppsConfig(opts *config) {
-	opts.addBool("google", "Would you like to install Google Chrome?", true)
-	opts.addBool("vscode", "Would you like to install VSCode?", true)
-	opts.addBool("desktop-apps", "Would you like to install Desktop Apps?", true)
+	opts.addBool("google", "Install Google Chrome?", true)
+	opts.addBool("vscode", "Install VSCode?", true)
+	opts.addBool("desktop-apps", "Install Desktop Apps?", true)
 	if opts.bool("desktop-apps") {
-		opts.addBool("steam", "Would you like to install Steam?", true)
+		opts.addBool("steam", "Install Steam?", true)
 	}
 
 	fmt.Println("")

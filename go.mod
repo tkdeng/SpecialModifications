@@ -5,7 +5,7 @@ go 1.24.9
 require (
 	github.com/tkdeng/gobash v0.1.5
 	github.com/tkdeng/goutil v0.10.1
-	github.com/tkdeng/regex v1.0.0
+	github.com/tkdeng/regex v1.2.5
 )
 
 require (

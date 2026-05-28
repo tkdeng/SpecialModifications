@@ -23,7 +23,7 @@ type coreInstaller struct {
 
 func installConfig(opts *config) {
 	if PM == "dnf" {
-		if opts.addBool("ufw", "Would you like to install UFW (Uncomplicated Firewall)?", true) {
+		if opts.addBool("ufw", "Install UFW (Uncomplicated Firewall)?", true) {
 			fmt.Println("Using UFW...")
 		} else {
 			fmt.Println("Using Firewalld...")
@@ -32,9 +32,9 @@ func installConfig(opts *config) {
 		opts.setBool("ufw", true)
 	}
 
-	if opts.addBool("cloudflareDNS", "Would you like to use Cloudflare DNS?", true) {
+	if opts.addBool("cloudflareDNS", "Use Cloudflare DNS?", true) {
 		fmt.Println("Using Cloudflare DNS...")
-		if opts.addBool("googleFallbackDNS", "Would you like to use Google DNS as a fallback?", true) {
+		if opts.addBool("googleFallbackDNS", "Use Google DNS as fallback?", true) {
 			fmt.Println("Using Google Fallback DNS...")
 		} else {
 			fmt.Println("Using Cloudflare Fallback DNS...")
@@ -44,7 +44,7 @@ func installConfig(opts *config) {
 	}
 
 	if !SSHClient {
-		opts.addBool("disableSSH", "Would you like to disable SSH?", true)
+		opts.addBool("disableSSH", "Disable SSH?", true)
 	} else {
 		opts.setBool("disableSSH", false)
 	}

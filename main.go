@@ -44,19 +44,11 @@ func main() {
 
 	SSHClient = !bash.If(`"$SSH_CLIENT" == "" && "$SSH_TTY" == ""`, "", nil)
 
-	if out, err := bash.RunRaw(`echo $XDG_CURRENT_DESKTOP`, "", nil); err == nil && len(out) != 0 {
-		DesktopENV = append(DesktopENV, string(bytes.ToLower(bytes.TrimSpace(out))))
-	}
-
-	if out, err := bash.RunRaw(`ls /usr/share/xsessions/*.desktop`, "", nil); err == nil && len(out) != 0 {
-		list := bytes.Split(out, []byte{'\n'})
-		reg := regex.Comp(`^.*\/([\w_\-]+)\.desktop$`)
-		for _, item := range list {
-			item = bytes.TrimSpace(item)
-			if len(item) != 0 && reg.Match(item) {
-				DesktopENV = append(DesktopENV, string(bytes.ToLower(reg.Rep(item, []byte("$1")))))
-			}
-		}
+	if out, err := bash.RunRaw(`ls -1d /usr/share/{xsessions,wayland-sessions}/*.desktop 2>/dev/null`, "", nil); err == nil && len(out) != 0 {
+		regex.Comp(`(?m)\/([\w_\-]+)\.desktop$`).RepFunc(out, func(b func(int) []byte) []byte {
+			DesktopENV = append(DesktopENV, string(bytes.ToLower(b(1))))
+			return nil
+		})
 	}
 
 	if cliArgs["help"] == "true" || cliArgs["h"] == "true" {

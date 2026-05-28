@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"fmt"
+	"os"
 	"time"
 
 	bash "github.com/tkdeng/gobash"
@@ -18,8 +19,10 @@ type themeInstaller struct {
 }
 
 func installThemeConfig(opts *config) {
-	opts.addBool("texteditor-session", "Would you like to Restore Text Editor Sessions?", true)
-	opts.addBool("darktheme", "Would you like to Use Dark Theme?", true)
+	if goutil.Contains(DesktopENV, "gnome") {
+		opts.addBool("texteditor-session", "Restore Text Editor Sessions?", true)
+		opts.addBool("darktheme", "Use Dark Theme?", true)
+	}
 
 	fmt.Println("")
 	time.Sleep(1 * time.Second)
@@ -49,6 +52,9 @@ func installTheme(opts *config) {
 	update(true)
 	progressBar.Step()
 
+	//todo: figure out ly for optional server minimal gui
+	// may move ly option separate from theme (serverTheme or sshTheme or sshGUI)
+
 	//todo: setup theme install
 
 	progressBar.Msg("Installing Theme Assets")
@@ -57,9 +63,6 @@ func installTheme(opts *config) {
 	extractEmbeddedTarGz("assets/sounds.tar.gz", "/usr/share/sounds")
 	extractEmbeddedTarGz("assets/backgrounds.tar.gz", "/usr/share/backgrounds")
 	progressBar.Step()
-
-	//todo: figure out ly for optional server minimal gui
-	// may move ly option separate from theme (serverTheme or sshTheme or sshGUI)
 
 	//* install desktop environment specific theme
 	if goutil.Contains(DesktopENV, "gnome") {
@@ -75,12 +78,36 @@ func installTheme(opts *config) {
 }
 
 func (theme *themeInstaller) gnome() {
+	//* install gnome theme apps
+	theme.progressBar.Msg("Installing Gnome Theme Apps")
+	if PM == "dnf" {
+		installPKG("dconf-editor", "gnome-tweaks")
+	} else if PM == "apt" {
+		installPKG("dconf-editor", "gnome-tweak-tool")
+	}
+	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `org.gnome.Extensions`}, "", nil, true)
+	bash.Run([]string{`flatpak`, `install`, `-y`, `flathub`, `com.mattjakeman.ExtensionManager`}, "", nil, true)
+	theme.progressBar.Step()
+
 	//* config gnome theme
 	theme.progressBar.Msg("Configuring Theme Settings")
 	/* bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.interface`, `clock-format`, `12h`}, "", nil)
 	bash.Run([]string{`gsettings`, `set`, `org.gnome.mutter`, `center-new-windows`, `true`}, "", nil)
 	bash.Run([]string{`gsettings`, `set`, `org.gnome.mutter`, `attach-modal-dialogs`, `false`}, "", nil)
 	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.wm.preferences`, `button-layout`, `appmenu:minimize,maximize,close`}, "", nil) */
+
+	if files, err := assetTheme.ReadDir("assets/theme/dconf"); err == nil {
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+			if out, err := goutil.JoinPath("/etc/dconf/db/local.d", file.Name()); err == nil {
+				if buf, err := assetTheme.ReadFile("assets/theme/dconf/" + file.Name()); err == nil {
+					os.WriteFile(out, buf, 0644)
+				}
+			}
+		}
+	}
 
 	if PM == "dnf" {
 		removePKG("gnome-shell-extension-background-logo")
