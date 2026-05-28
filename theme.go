@@ -160,6 +160,8 @@ func (theme *themeInstaller) gnome() {
 	//* install extras
 	installExt("clipboard-indicator@tudmotu.com")
 
+	//todo: finish adding extensions (and settings in assets/theme/dconf/02-extension-settings)
+
 	theme.progressBar.Step()
 
 	theme.progressBar.Msg("Configuring Gnome Extensions")
