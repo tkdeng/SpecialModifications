@@ -55,8 +55,8 @@ disable-overview-on-startup=true
 apply-custom-theme=true
 
 [org/gnome/shell/extensions/aztaskbar]
-favorites=true
-favorites-on-all-monitors=true
+favorites=false
+favorites-on-all-monitors=false
 show-running-apps=true
 icon-size=32
 panel-location='BOTTOM'
@@ -75,8 +75,6 @@ margin=4
 set-bottom-margin=true
 bottom-margin=8
 wmaxbar=true
-#cust-margin-wmax=true
-#margin-wmax=4
 buttonbg-wmax=false
 autofg-bar=true
 font='Sans Bold 12'
