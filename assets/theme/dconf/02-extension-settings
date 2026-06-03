@@ -88,3 +88,15 @@ show-desktop-widgets=true
 
 [org/gnome/shell/extensions/clipboard-indicator]
 confirm-clear=false
+
+[org/gnome/shell/extensions/printers]
+show-icon='When printing'
+job-number=true
+send-to-front=true
+
+[org/gnome/shell/extensions/vitals]
+hide-zeros=true
+fixed-widths=false
+
+[org/gnome/shell/extensions/burn-my-windows]
+active-profile='$HOME/.config/burn-my-windows/profiles/effects.conf'
