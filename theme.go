@@ -55,8 +55,6 @@ func installTheme(opts *config) {
 	//todo: figure out ly for optional server minimal gui
 	// may move ly option separate from theme (serverTheme or sshTheme or sshGUI)
 
-	//todo: setup theme install
-
 	progressBar.Msg("Installing Theme Assets")
 	extractEmbeddedTarGz("assets/themes.tar.gz", "/usr/share/themes")
 	extractEmbeddedTarGz("assets/icons.tar.gz", "/usr/share/icons")
