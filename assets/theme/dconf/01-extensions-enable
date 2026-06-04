@@ -1,2 +1,2 @@
 [org/gnome/shell]
-enabled-extensions=['vertical-workspaces@G-dH.github.com', 'arcmenu@arcmenu.com', 'dash-to-dock@micxgx.gmail.com', 'aztaskbar@aztaskbar.gitlab.com', 'openbar@neuromorph', 'gtk4-ding@smedius.gitlab.com', 'clipboard-indicator@tudmotu.com']
+enabled-extensions=['vertical-workspaces@G-dH.github.com', 'arcmenu@arcmenu.com', 'dash-to-dock@micxgx.gmail.com', 'aztaskbar@aztaskbar.gitlab.com', 'openbar@neuromorph', 'gtk4-ding@smedius.gitlab.com', 'appindicatorsupport@rgcjonas.gmail.com', 'drive-menu@gnome-shell-extensions.gcampax.github.com', 'clipboard-indicator@tudmotu.com', 'batterytime@typeof.pw', 'printers@linuxman.org']

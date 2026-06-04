@@ -160,27 +160,27 @@ func (theme *themeInstaller) gnome() {
 	installExt("gtk4-ding@smedius.gitlab.com")
 
 	//* install extras
-	// installExt("appindicatorsupport@rgcjonas.gmail.com")
 	installExt("clipboard-indicator@tudmotu.com")
 	installExt("batterytime@typeof.pw")
 	installExt("printers@linuxman.org")
 	installExt("Vitals@CoreCoding.com")
 	installExt("pop-shell@system76.com")
 	installExt("burn-my-windows@schneegans.github.com")
+	installExt("compiz-alike-magic-lamp-effect@hermes83.github.com")
 
 	if PM == "dnf" {
 		installPKG("gnome-shell-extension-pop-shell")
-	}else{
+	} else if PM == "apt" {
 		bash.Run([]string{`git`, `clone`, `--depth=1`, `https://github.com/pop-os/shell.git`, `/tmp/pop-shell`}, "", nil)
 		bash.RunUser(`male local-install`, sudouser, "/tmp/pop-shell", nil)
-		bash.Run([]string{`mv`, `/home/`+sudouser+`/.local/share/gnome-shell/extensions/pop-shell@system76.com`, `/usr/share/gnome-shell/extensions/`}, "", nil)
+		bash.Run([]string{`mv`, `/home/` + sudouser + `/.local/share/gnome-shell/extensions/pop-shell@system76.com`, `/usr/share/gnome-shell/extensions/`}, "", nil)
 		bash.Run([]string{`chown`, `-R`, `root:root`, `/usr/share/gnome-shell/extensions/`}, "", nil)
 		bash.Run([]string{`chmod`, `-R`, `755`, `/usr/share/gnome-shell/extensions/`}, "", nil)
 	}
 
-	bash.Run([]string{`mkdir`, `-p`, `/home/`+sudouser+`/.config/burn-my-windows/profiles`}, "", nil)
-	bash.Run([]string{`cp`, `/root/skel/.config/burn-my-windows/profiles/effects.conf`, `/home/`+sudouser+`/.config/burn-my-windows/profiles/effects.conf`}, "", nil)
-	bash.Run([]string{`chown`, `-R`, sudouser+`:`+sudouser, `/home/`+sudouser+`/.config`}, "", nil)
+	bash.Run([]string{`mkdir`, `-p`, `/home/` + sudouser + `/.config/burn-my-windows/profiles`}, "", nil)
+	bash.Run([]string{`cp`, `/root/skel/.config/burn-my-windows/profiles/effects.conf`, `/home/` + sudouser + `/.config/burn-my-windows/profiles/effects.conf`}, "", nil)
+	bash.Run([]string{`chown`, `-R`, sudouser + `:` + sudouser, `/home/` + sudouser + `/.config`}, "", nil)
 	// bash.RunUser(`dconf write /org/gnome/shell/extensions/burn-my-windows/active-profile '$HOME/.config/burn-my-windows/profiles/effects.conf'`, sudouser, "", nil)
 
 	//todo: finish adding extensions (and settings in assets/theme/dconf/02-extension-settings)
