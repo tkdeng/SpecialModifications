@@ -267,6 +267,9 @@ func installCore(opts *config) {
 
 	//* disable startups
 	core.progressBar.Msg("Disabling Time Wasting Programs")
+	if !SSHClient {
+		bash.Run([]string{`systemctl`, `disable`, `NetworkManager-wait-online.service`}, "", nil, true)
+	}
 	bash.Run([]string{`systemctl`, `disable`, `accounts-daemon.service`}, "", nil, true) // is a potential securite risk
 	bash.Run([]string{`systemctl`, `disable`, `debug-shell.service`}, "", nil, true)     // opens a giant security hole
 	removePKG(`dmraid`)
