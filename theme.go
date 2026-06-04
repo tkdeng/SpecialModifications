@@ -122,24 +122,16 @@ func (theme *themeInstaller) gnome() {
 	theme.progressBar.Step()
 
 	if theme.opts.bool("darktheme") {
-		bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.interface`, `color-scheme`, `prefer-dark`}, "", nil)
+		bash.RunUser(`dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"`, sudouser, "", nil)
 	}
 
-	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.interface`, `gtk-theme`, `Fluent-round-Dark`}, "", nil)
-	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.interface`, `icon-theme`, `ZorinBlue-Dark`}, "", nil)
-	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.sound`, `theme-name`, `zorin`}, "", nil)
-	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.background`, `picture-uri`, `file:///usr/share/backgrounds/tkdeng/blue.webp`}, "", nil)
-	bash.Run([]string{`gsettings`, `set`, `org.gnome.desktop.background`, `picture-uri-dark`, `file:///usr/share/backgrounds/tkdeng/black.webp`}, "", nil)
+	/* bash.RunUser(`dconf write /org/gnome/desktop/interface/gtk-theme "'Fluent-round-Dark'"`, sudouser, "", nil)
+	bash.RunUser(`dconf write /org/gnome/desktop/interface/icon-theme "'ZorinBlue-Dark'"`, sudouser, "", nil)
+	bash.RunUser(`dconf write /org/gnome/desktop/sound/theme-name "'zorin'"`, sudouser, "", nil)
+	bash.RunUser(`dconf write /org/gnome/desktop/background/picture-uri "'file:///usr/share/backgrounds/tkdeng/blue.webp'"`, sudouser, "", nil)
+	bash.RunUser(`dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///usr/share/backgrounds/tkdeng/black.webp'"`, sudouser, "", nil) */
 
 	theme.progressBar.Step()
-
-	sudouser := os.Getenv("SUDO_USER")
-	installExt := func(name string) {
-		bash.RunUser(`gext install `+name, sudouser, "", nil)
-		bash.Run([]string{`mv`, `/home/` + sudouser + `/.local/share/gnome-shell/extensions/` + name, `/usr/share/gnome-shell/extensions/`}, "", nil)
-		bash.Run([]string{"sudo", "chown", "-R", "root:root", `/usr/share/gnome-shell/extensions/` + name}, "", nil)
-		bash.Run([]string{"sudo", "chmod", "-R", "755", `/usr/share/gnome-shell/extensions/` + name}, "", nil)
-	}
 
 	//* install gnome extensions
 	theme.progressBar.Msg("Installing Gnome Extensions")
@@ -190,7 +182,7 @@ func (theme *themeInstaller) gnome() {
 	theme.progressBar.Step()
 }
 
-func (theme *themeInstaller) installExt(name string, sudouser string) {
+func installExt(name string) {
 	bash.RunUser(`gext install `+name, sudouser, "", nil)
 	bash.Run([]string{`mv`, `/home/` + sudouser + `/.local/share/gnome-shell/extensions/` + name, `/usr/share/gnome-shell/extensions/`}, "", nil)
 	bash.Run([]string{"sudo", "chown", "-R", "root:root", `/usr/share/gnome-shell/extensions/` + name}, "", nil)

@@ -19,6 +19,7 @@ var hasNalaPM = false
 var SSHClient = true
 var DesktopENV = []string{}
 var AssumeYes = false
+var sudouser string
 
 var cliArgs = goutil.MapArgs()
 
@@ -56,6 +57,8 @@ func main() {
 			return nil
 		})
 	}
+
+	sudouser = os.Getenv("SUDO_USER")
 
 	if cliArgs["help"] == "true" || cliArgs["h"] == "true" {
 		//todo: add help message

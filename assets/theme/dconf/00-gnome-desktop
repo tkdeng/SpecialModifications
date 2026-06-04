@@ -1,5 +1,7 @@
 [org/gnome/desktop/interface]
 clock-format='12h'
+show-battery-percentage=true
+clock-show-weekday=true
 
 [org/gnome/mutter]
 center-new-windows=true
