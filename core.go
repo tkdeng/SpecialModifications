@@ -13,7 +13,7 @@ import (
 	"github.com/tkdeng/regex"
 )
 
-//go:embed assets/fs/*
+//go:embed all:assets/fs/*
 var assetFS embed.FS
 
 type coreInstaller struct {

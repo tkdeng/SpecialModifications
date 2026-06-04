@@ -181,9 +181,7 @@ func (theme *themeInstaller) gnome() {
 	bash.Run([]string{`mkdir`, `-p`, `/home/` + sudouser + `/.config/burn-my-windows/profiles`}, "", nil)
 	bash.Run([]string{`cp`, `/root/skel/.config/burn-my-windows/profiles/effects.conf`, `/home/` + sudouser + `/.config/burn-my-windows/profiles/effects.conf`}, "", nil)
 	bash.Run([]string{`chown`, `-R`, sudouser + `:` + sudouser, `/home/` + sudouser + `/.config`}, "", nil)
-	// bash.RunUser(`dconf write /org/gnome/shell/extensions/burn-my-windows/active-profile '$HOME/.config/burn-my-windows/profiles/effects.conf'`, sudouser, "", nil)
-
-	//todo: finish adding extensions (and settings in assets/theme/dconf/02-extension-settings)
+	bash.RunUser(`dconf write /org/gnome/shell/extensions/burn-my-windows/active-profile "'$HOME/.config/burn-my-windows/profiles/effects.conf'"`, sudouser, "", nil)
 
 	theme.progressBar.Step()
 
