@@ -54,6 +54,7 @@ func installTheme(opts *config) {
 
 	//todo: figure out ly for optional server minimal gui
 	// may move ly option separate from theme (serverTheme or sshTheme or sshGUI)
+	// note: also ask user if they want to install a GUI on SSHClient
 
 	progressBar.Msg("Installing Theme Assets")
 	extractEmbeddedTarGz("assets/themes.tar.gz", "/usr/share/themes")
