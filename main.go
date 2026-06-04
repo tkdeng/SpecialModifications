@@ -44,7 +44,7 @@ func main() {
 
 	SSHClient = !bash.If(`"$SSH_CLIENT" == "" && "$SSH_TTY" == ""`, "", nil)
 
-	if out, err := bash.RunRaw(`ls -1d /usr/share/{xsessions,wayland-sessions}/*.desktop 2>/dev/null`, "", nil); err == nil && len(out) != 0 {
+	if out, _ := bash.RunRaw(`ls -1d /usr/share/{xsessions,wayland-sessions}/*.desktop 2>/dev/null`, "", nil); len(out) != 0 {
 		regex.Comp(`(?m)\/([\w_\-]+)\.desktop$`).RepFunc(out, func(b func(int) []byte) []byte {
 			dt := bytes.ToLower(b(1))
 			DesktopENV = append(DesktopENV, string(dt))
