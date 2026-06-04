@@ -79,7 +79,7 @@ func installTheme(opts *config) {
 
 func (theme *themeInstaller) gnome() {
 	//* install gnome theme apps
-	theme.progressBar.Msg("Installing Gnome Theme Apps")
+	theme.progressBar.Msg("Installing Gnome Apps")
 
 	if PM == "dnf" {
 		installPKG("dconf-editor", "gnome-tweaks")
