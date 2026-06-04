@@ -46,7 +46,13 @@ func main() {
 
 	if out, err := bash.RunRaw(`ls -1d /usr/share/{xsessions,wayland-sessions}/*.desktop 2>/dev/null`, "", nil); err == nil && len(out) != 0 {
 		regex.Comp(`(?m)\/([\w_\-]+)\.desktop$`).RepFunc(out, func(b func(int) []byte) []byte {
-			DesktopENV = append(DesktopENV, string(bytes.ToLower(b(1))))
+			dt := bytes.ToLower(b(1))
+			DesktopENV = append(DesktopENV, string(dt))
+
+			for _, d := range bytes.Split(dt, []byte{'-'}) {
+				DesktopENV = append(DesktopENV, string(d))
+			}
+
 			return nil
 		})
 	}
