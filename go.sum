@@ -11,8 +11,8 @@ github.com/shirou/gopsutil v3.21.11+incompatible h1:+1+c1VGhc88SSonWP6foOcLhvnKl
 github.com/shirou/gopsutil v3.21.11+incompatible/go.mod h1:5b4v6he4MtMOwMlS0TUMTu2PcXUg8+E1lC7eC3UO/RA=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/tkdeng/gobash v0.2.0 h1:FjsJ07b2sLl6SrHgQfEyuUirPIhD4JbTYy4lKOS/Glo=
-github.com/tkdeng/gobash v0.2.0/go.mod h1:FnMaYYvUzDCqdRdOmdM88PHUyRnrJCiO2Y//PMEhvWM=
+github.com/tkdeng/gobash v0.2.1 h1:dHzuw0/K0zcc2eqFBSnGX+Nw9RC9aewlI8TBt0BXWLo=
+github.com/tkdeng/gobash v0.2.1/go.mod h1:FnMaYYvUzDCqdRdOmdM88PHUyRnrJCiO2Y//PMEhvWM=
 github.com/tkdeng/goutil v1.0.0 h1:lROnrEgi7AR4q/dUvwW3kjgZHyyQr3vzUqikNjR19aw=
 github.com/tkdeng/goutil v1.0.0/go.mod h1:ddDSIiBYjCt/homrov6dCfvUH5u1j2Hv0BdzZfGWpPA=
 github.com/tkdeng/regex v1.2.5 h1:sp6V0Y6CD8G+Zpd5WdjH3Hwadc4SXkck5E2zXwpAa/E=

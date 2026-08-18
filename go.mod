@@ -3,7 +3,7 @@ module SpecialModifications
 go 1.24.9
 
 require (
-	github.com/tkdeng/gobash v0.2.0
+	github.com/tkdeng/gobash v0.2.1
 	github.com/tkdeng/goutil v1.0.0
 	github.com/tkdeng/regex v1.2.5
 )
