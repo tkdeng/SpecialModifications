@@ -175,6 +175,10 @@ func (theme *themeInstaller) gnome() {
 	bash.RunRaw(`rm -rf /home/`+sudouser+`/.config/burn-my-windows/profiles/*`, "", nil)
 	bash.RunUserSystemd([]string{`dconf`, `write`, `/org/gnome/shell/extensions/burn-my-windows/active-profile`, `'$HOME/.config/burn-my-windows/profiles/effects.conf'`}, sudouser, "", nil)
 
+	//* fix stubborn arcmenu keybinding
+	bash.RunUserSystemd([]string{`gsettings`, `set`, `org.gnome.shell.arcmenu`, `arcmenu-hotkey-overlay-key-enabled`, `false`}, sudouser, "", nil)
+	bash.RunUserSystemd([]string{`gsettings`, `set`, `org.gnome.shell.arcmenu`, `arcmenu-hotkey-binding`, `'None'`}, sudouser, "", nil)
+
 	theme.progressBar.Step()
 
 	theme.progressBar.Msg("Configuring Gnome Extensions")
