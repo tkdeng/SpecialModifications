@@ -122,14 +122,14 @@ func (theme *themeInstaller) gnome() {
 	theme.progressBar.Step()
 
 	if theme.opts.bool("darktheme") {
-		bash.RunUser(`gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'`, sudouser, "", nil)
+		bash.RunUserSystemd(`gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'`, sudouser, "", nil)
 	}
 
-	/* bash.RunUser(`dconf write /org/gnome/desktop/interface/gtk-theme "'Fluent-round-Dark'"`, sudouser, "", nil)
-	bash.RunUser(`dconf write /org/gnome/desktop/interface/icon-theme "'ZorinBlue-Dark'"`, sudouser, "", nil)
-	bash.RunUser(`dconf write /org/gnome/desktop/sound/theme-name "'zorin'"`, sudouser, "", nil)
-	bash.RunUser(`dconf write /org/gnome/desktop/background/picture-uri "'file:///usr/share/backgrounds/tkdeng/blue.webp'"`, sudouser, "", nil)
-	bash.RunUser(`dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///usr/share/backgrounds/tkdeng/black.webp'"`, sudouser, "", nil) */
+	/* bash.RunUserSystemd(`dconf write /org/gnome/desktop/interface/gtk-theme "'Fluent-round-Dark'"`, sudouser, "", nil)
+	bash.RunUserSystemd(`dconf write /org/gnome/desktop/interface/icon-theme "'ZorinBlue-Dark'"`, sudouser, "", nil)
+	bash.RunUserSystemd(`dconf write /org/gnome/desktop/sound/theme-name "'zorin'"`, sudouser, "", nil)
+	bash.RunUserSystemd(`dconf write /org/gnome/desktop/background/picture-uri "'file:///usr/share/backgrounds/tkdeng/blue.webp'"`, sudouser, "", nil)
+	bash.RunUserSystemd(`dconf write /org/gnome/desktop/background/picture-uri-dark "'file:///usr/share/backgrounds/tkdeng/black.webp'"`, sudouser, "", nil) */
 
 	theme.progressBar.Step()
 
@@ -163,7 +163,7 @@ func (theme *themeInstaller) gnome() {
 		installPKG("gnome-shell-extension-pop-shell")
 	} else if PM == "apt" {
 		bash.Run([]string{`git`, `clone`, `--depth=1`, `https://github.com/pop-os/shell.git`, `/tmp/pop-shell`}, "", nil)
-		bash.RunUser(`male local-install`, sudouser, "/tmp/pop-shell", nil)
+		bash.RunUser(`make local-install`, sudouser, "/tmp/pop-shell", nil)
 		bash.Run([]string{`mv`, `/home/` + sudouser + `/.local/share/gnome-shell/extensions/pop-shell@system76.com`, `/usr/share/gnome-shell/extensions/`}, "", nil)
 		bash.Run([]string{`chown`, `-R`, `root:root`, `/usr/share/gnome-shell/extensions/`}, "", nil)
 		bash.Run([]string{`chmod`, `-R`, `755`, `/usr/share/gnome-shell/extensions/`}, "", nil)
@@ -173,7 +173,7 @@ func (theme *themeInstaller) gnome() {
 	bash.Run([]string{`cp`, `/root/skel/.config/burn-my-windows/profiles/effects.conf`, `/home/` + sudouser + `/.config/burn-my-windows/profiles/effects.conf`}, "", nil)
 	bash.Run([]string{`chown`, `-R`, sudouser + `:` + sudouser, `/home/` + sudouser + `/.config`}, "", nil)
 	bash.RunRaw(`rm -rf /home/`+sudouser+`/.config/burn-my-windows/profiles/*`, "", nil)
-	bash.RunUser(`dconf write /org/gnome/shell/extensions/burn-my-windows/active-profile "'$HOME/.config/burn-my-windows/profiles/effects.conf'"`, sudouser, "", nil)
+	bash.RunUserSystemd(`dconf write /org/gnome/shell/extensions/burn-my-windows/active-profile "'$HOME/.config/burn-my-windows/profiles/effects.conf'"`, sudouser, "", nil)
 
 	theme.progressBar.Step()
 
