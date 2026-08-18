@@ -122,7 +122,7 @@ func (theme *themeInstaller) gnome() {
 	theme.progressBar.Step()
 
 	if theme.opts.bool("darktheme") {
-		bash.RunUser(`dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"`, sudouser, "", nil)
+		bash.RunUser(`gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'`, sudouser, "", nil)
 	}
 
 	/* bash.RunUser(`dconf write /org/gnome/desktop/interface/gtk-theme "'Fluent-round-Dark'"`, sudouser, "", nil)
@@ -178,6 +178,8 @@ func (theme *themeInstaller) gnome() {
 	theme.progressBar.Step()
 
 	theme.progressBar.Msg("Configuring Gnome Extensions")
+	bash.Run([]string{`cp`, `/usr/share/gnome-shell/extensions/*/schemas/*.gschema.xml`, `/usr/share/glib-2.0/schemas/`}, "", nil)
+	bash.Run([]string{`glib-compile-schemas`, `/usr/share/glib-2.0/schemas/`}, "", nil)
 	bash.Run([]string{`dconf`, `update`}, "", nil)
 	theme.progressBar.Step()
 }
