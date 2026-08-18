@@ -21,6 +21,7 @@ arcmenu-hotkey-overlay-key-enabled=false
 arcmenu-hotkey-binding='None'
 hide-overview-on-startup=true
 default-menu-view='Pinned_And_Frequent_Apps'
+all-apps-button-action='All_Programs'
 arcmenu-layout-max-frequent-apps=16
 vert-separator=true
 show-external-devices=true
